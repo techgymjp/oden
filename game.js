@@ -826,7 +826,9 @@ Served ${served} items · ${happy} happy customers
     return T().shareText(state.score.toLocaleString(), stay, state.served, state.happy);
   }
 
-  function gameUrl() { return location.origin + location.pathname; }
+  // シェアするURL（紹介記事）
+  const SHARE_URL = 'https://techgym.jp/column/claude-code-game-oden/';
+  function gameUrl() { return SHARE_URL; }
 
   function setupShare() {
     const text = shareText();
