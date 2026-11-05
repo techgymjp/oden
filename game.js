@@ -24,13 +24,13 @@
     hanpen:   { name: 'はんぺん', cook: 4,  price: 120, unlock: 25 },
     atsuage:  { name: '厚揚げ',   cook: 9,  price: 150, unlock: 25 },
     gyusuji:  { name: '牛すじ',   cook: 11, price: 200, unlock: 55 },
-    kinchaku: { name: 'もち巾着', cook: 10, price: 180, unlock: 55 },
+    cabbage:  { name: 'ロールキャベツ', cook: 10, price: 180, unlock: 55 },
   };
 
   // ツンツンした時の音の高さ（やわらかい具は低く、弾力のある具は高く）
   const POKE_PITCH = {
     chikuwa: 1.2, tamago: 1.35, konnyaku: 1.5, daikon: 0.85,
-    hanpen: 0.75, atsuage: 1.0, gyusuji: 1.1, kinchaku: 0.9,
+    hanpen: 0.75, atsuage: 1.0, gyusuji: 1.1, cabbage: 0.9,
   };
 
   const FACES = ['👨‍💼', '👩', '👴', '👵', '🧑‍🎓', '👷', '🧔', '👩‍💼', '🧑‍🍳', '👨‍🦳'];
@@ -46,7 +46,7 @@
     konnyaku: `<svg viewBox="0 0 100 100"><path d="M50 12L88 82H12Z" fill="#7d736a" stroke="#5f5750" stroke-width="3" stroke-linejoin="round"/><g fill="#4d4640"><circle cx="40" cy="60" r="2.5"/><circle cx="55" cy="48" r="2.5"/><circle cx="62" cy="68" r="2.5"/><circle cx="48" cy="72" r="2"/><circle cx="50" cy="35" r="2"/></g><path d="M34 70l32-28" stroke="#9a9087" stroke-width="2"/></svg>`,
     atsuage: `<svg viewBox="0 0 100 100"><rect x="16" y="22" width="68" height="56" rx="8" fill="#b06a26"/><rect x="24" y="30" width="52" height="40" rx="5" fill="#d08a3c"/><rect x="30" y="36" width="40" height="28" rx="4" fill="#f3e6c6" opacity=".55"/></svg>`,
     gyusuji: `<svg viewBox="0 0 100 100"><path d="M10 90L90 10" stroke="#e2c58c" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="68" r="15" fill="#7a4421"/><circle cx="50" cy="50" r="15" fill="#8d5128"/><circle cx="68" cy="32" r="15" fill="#7a4421"/><path d="M26 64q6 6 12 0M44 46q6 6 12 0M62 28q6 6 12 0" stroke="#d7b48a" stroke-width="3" fill="none"/></svg>`,
-    kinchaku: `<svg viewBox="0 0 100 100"><path d="M50 30C22 30 16 86 50 86S78 30 50 30Z" fill="#c4813a"/><path d="M50 32l-14-16M50 32l14-16M50 32V14" stroke="#b47b33" stroke-width="5" stroke-linecap="round"/><path d="M36 34q14 8 28 0" stroke="#8a5a20" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`,
+    cabbage: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="40" ry="30" fill="#b9d98a" stroke="#86b356" stroke-width="3"/><path d="M14 50q18-22 36-4q18 18 36-6" fill="none" stroke="#9cc56a" stroke-width="5" stroke-linecap="round"/><path d="M50 22q6 28 0 56M30 28q4 22 0 44M70 28q-4 22 0 44" fill="none" stroke="#e6f2cf" stroke-width="2.5" stroke-linecap="round"/><path d="M44 20q-6 30 0 60" fill="none" stroke="#c9a46a" stroke-width="6" stroke-linecap="round"/></svg>`,
   };
 
   // ============================================================
