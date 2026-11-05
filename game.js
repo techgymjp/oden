@@ -13,8 +13,8 @@
     pokeCooldown: 1000,   // 同じ具をツンツンできる間隔（ms）
     missPenaltyRaw: 0.2,  // 「まだ固い」で、お客さん全員の我慢時間が減る秒数
     missPenaltyWrong: 0.7,// 「注文なし」「つつきすぎ」「からっぽ」で減る秒数
-    patienceBase: 8,      // 我慢時間の基本秒数
-    patiencePerItem: 3,   // 我慢時間：1 品あたりの追加秒数
+    patienceBase: 10,     // 我慢時間の基本秒数
+    patiencePerItem: 3.5, // 我慢時間：1 品あたりの追加秒数
     comboStep: 20,        // コンボボーナス：1 コンボごとの加算額
     comboMax: 10,         // コンボボーナスの上限段数
     tipPerItem: 150,      // チップ：1 品あたりの最大額（早く出すほど多い）
