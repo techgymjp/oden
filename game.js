@@ -33,6 +33,9 @@
     hanpen: 0.75, atsuage: 1.0, gyusuji: 1.1, cabbage: 0.9,
   };
 
+  // URL に ?debug を付けると、各仕切りの中身（上から順・煮え具合）を表示する確認用モード
+  const DEBUG = /[?&]debug\b/.test(location.search);
+
   const FACES = ['👨‍💼', '👩', '👴', '👵', '🧑‍🎓', '👷', '🧔', '👩‍💼', '🧑‍🍳', '👨‍🦳'];
 
   // ============================================================
@@ -516,6 +519,16 @@
       }
       slotEl.setAttribute('aria-label', top ? `仕切り${i + 1}：${TYPES[top.type].name}` : `仕切り${i + 1}：空`);
     });
+    if (DEBUG) {
+      state.slots.forEach((stack, i) => {
+        const slotEl = el.pot.children[i];
+        let d = slotEl.querySelector('.dbg');
+        if (!d) { d = document.createElement('div'); d.className = 'dbg'; slotEl.appendChild(d); }
+        d.textContent = stack.slice().reverse().map((it, k) =>
+          `${k + 1}段目 ${TYPES[it.type].name} ${state.time - it.enteredAt >= it.cookTime ? '煮' : '生'}`).join('\n') || '空';
+      });
+    }
+
     // 一番上でない「fresh」フラグは描画されないまま残るので消す
     state.slots.forEach((s) => s.forEach((it) => { it.fresh = false; }));
 

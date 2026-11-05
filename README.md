@@ -38,6 +38,10 @@
 
 バランス調整は `game.js` 冒頭の `CONFIG` と `TYPES` で行えます。
 
+## 確認用モード
+
+URL の末尾に `?debug` を付けると（例：`https://techgymjp.github.io/oden/?debug`）、各仕切りの中身を上から順に、煮え具合（煮／生）付きで表示します。
+
 ## ファイル構成
 
 - `index.html` — 画面
