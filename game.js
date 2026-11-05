@@ -12,6 +12,7 @@
     seats: 4,             // カウンター席数
     pokeCooldown: 1000,   // 同じ具をツンツンできる間隔（ms）
     cookJitter: 0.25,     // 煮え時間のばらつき（±25%）
+    prepped: 6,           // 開店時に仕込んである（煮えている）具の数
   };
 
   // 具材：cook = 煮えるまでの基本秒数, unlock = 登場し始める経過秒数
@@ -259,10 +260,8 @@
       .map((s, i) => ({ s, i }))
       .filter(({ s }) => s.length < CONFIG.stackMax);
     if (open.length === 0) return false;
-    // 空の仕切りがあればまずそこへ（什器がすぐ埋まる）。埋まったら上に重ねて下の具を隠す
-    const empty = open.filter(({ s }) => s.length === 0);
-    const candidates = empty.length > 0 && Math.random() < 0.85 ? empty : open;
-    const { i } = pick(candidates);
+    // 注文の具は、まだ3段に達していない仕切りのどれかをランダムに選び、一番上に乗せる
+    const { i } = pick(open);
     const base = TYPES[type].cook;
     state.slots[i].push({
       id: nextId++,
@@ -273,6 +272,24 @@
       fresh: true,
     });
     return true;
+  }
+
+  // 開店前の仕込み：ランダムな具を、煮えた状態で各仕切りの一番下に 1 つずつ
+  function prepPot() {
+    const types = availableTypes();
+    const order = state.slots.map((_, i) => i).sort(() => Math.random() - 0.5);
+    for (let k = 0; k < CONFIG.prepped; k++) {
+      const type = pick(types);
+      const cookTime = TYPES[type].cook;
+      state.slots[order[k % order.length]].push({
+        id: nextId++,
+        type,
+        enteredAt: -cookTime * 2, // とっくに煮えている
+        cookTime,
+        lastPoke: -Infinity,
+        fresh: true,
+      });
+    }
   }
 
   function potFreeSpace() {
@@ -613,6 +630,7 @@
       `<div>${SVG[k]}${TYPES[k].name}</div>`).join('');
     el.panelBody.innerHTML = `
       <ul class="rules">
+        <li>開店時、鍋には<b>煮えた具が6つ</b>仕込んであります。</li>
         <li>お客さんが注文すると、その具が鍋に入ります。</li>
         <li>鍋は<b>上から見えるだけ</b>。下に沈んだ具は見えません。</li>
         <li>具は<b>煮えても見た目が変わりません</b>。具ごとに煮える時間が違います。</li>
@@ -632,7 +650,8 @@
     el.overlay.classList.add('hidden');
     el.toast.textContent = 'いらっしゃいませ！';
     state.running = true;
-    // 開店と同時に全席満席でスタート
+    prepPot();
+    // 開店と同時に全席満席でスタート（注文の具は仕込みの具の上に重なっていく）
     for (let i = 0; i < CONFIG.seats; i++) spawnCustomer();
     toast('いらっしゃいませ！ 満席です！');
     state.nextSpawn = 2;
