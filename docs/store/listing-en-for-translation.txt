@@ -1,0 +1,50 @@
+Oden Tsun-Tsun - English source text for machine translation (Google Play store listing)
+
+This version uses short, plain sentences without idioms or slang, so that automatic translation
+into other languages stays accurate. Keep the game name "Oden Tsun-Tsun" untranslated.
+"Oden" is a Japanese dish. Many kinds of food simmer together in a pot of soup.
+
+[App name] (max 30 characters)
+Oden Tsun-Tsun
+
+[Short description] (max 80 characters)
+All the oden looks the same. Poke it with a stick. Serve the cooked ones fast.
+
+[Full description] (max 4000 characters)
+You run an oden shop. You look down into the pot from above. Six customers sit at the counter. They order food, and the food goes into the pot. But cooked oden and raw oden look the same. You must poke each item with a stick to check it.
+
+■ POKE AND SERVE
+Tap a part of the pot to poke the food with a stick.
+If a customer ordered it and it is cooked, you serve it.
+If it is not cooked, the game says "Not yet".
+If nobody ordered it, the game says "No order".
+Wait at least 1 second before you poke the same item again.
+
+■ YOU CANNOT SEE IF IT IS COOKED
+There are 8 kinds of food: daikon radish, egg, chikuwa fish cake, konnyaku, hanpen fish cake, fried tofu, beef tendon and cabbage roll.
+Each kind needs a different time to cook. The time also changes a little each time.
+Remember when each item went into the pot.
+
+■ THE POT HAS 3 LAYERS
+The pot has 6 parts. Each part holds up to 3 items, so the pot holds 18 items.
+You can only poke the top item. You can see a little of the lower items.
+When the pot is full, you cannot take new orders.
+
+■ DO NOT MAKE CUSTOMERS WAIT
+If a customer waits too long, the customer leaves angry. Your rating (♥) goes down.
+If you poke the wrong item, the customers get angry faster.
+If you lose all 3 ♥, the shop closes.
+
+■ GET MORE SALES
+Serve many items in a row to get a combo bonus.
+Serve quickly to get bigger tips.
+One game is 150 seconds. More customers come near the end.
+Try to beat your best sales.
+
+■ OTHER FEATURES
+At the start, 6 cooked items are already in the pot. The first customers order them.
+If you lose all ♥, you can watch an ad to get 1 ♥ back. You can do this 2 times in one game.
+Share your sales with your friends.
+The game has music and sounds.
+You can play without the internet. Ads and sharing need the internet.
+The game is in English and Japanese.
