@@ -276,8 +276,10 @@
   }
 
   // 開店前の仕込み：ランダムな具を、煮えた状態で各仕切りの一番下に 1 つずつ
+  // 仕込んだ具の種類の配列を返す
   function prepPot() {
     const types = availableTypes();
+    const prepped = [];
     const order = state.slots.map((_, i) => i).sort(() => Math.random() - 0.5);
     for (let k = 0; k < CONFIG.prepped; k++) {
       const type = pick(types);
@@ -290,7 +292,9 @@
         lastPoke: -Infinity,
         fresh: true,
       });
+      prepped.push(type);
     }
+    return prepped;
   }
 
   function potFreeSpace() {
@@ -301,25 +305,27 @@
   //  お客さん
   // ============================================================
   // 来店できたら true。席か鍋が空いていなければ false（すぐ再挑戦する）
-  function spawnCustomer() {
+  // preset を渡すと、その具をすでに鍋にある（仕込み済みの）具として注文する。鍋には追加しない
+  function spawnCustomer(preset = null) {
     const free = state.seats.map((c, i) => (c ? -1 : i)).filter((i) => i >= 0);
     if (free.length === 0) return false;
     const p = progress();
-    // 最初から 2〜3 品、後半は 2〜4 品をどんどん注文
-    const maxItems = p < 0.3 ? 3 : 4;
-    const count = Math.min(2 + Math.floor(Math.random() * (maxItems - 1)), potFreeSpace());
-    if (count <= 0) return false;
-
-    const types = availableTypes();
-    const wants = [];
-    for (let k = 0; k < count; k++) {
-      const type = pick(types);
-      wants.push({ type, served: false });
+    let wants;
+    if (preset) {
+      wants = preset.map((type) => ({ type, served: false }));
+    } else {
+      // 2〜3 品、後半は 2〜4 品をどんどん注文
+      const maxItems = p < 0.3 ? 3 : 4;
+      const count = Math.min(2 + Math.floor(Math.random() * (maxItems - 1)), potFreeSpace());
+      if (count <= 0) return false;
+      const types = availableTypes();
+      wants = [];
+      for (let k = 0; k < count; k++) wants.push({ type: pick(types), served: false });
+      wants.forEach((w) => addItemToPot(w.type));
     }
-    wants.forEach((w) => addItemToPot(w.type));
 
     const longest = Math.max(...wants.map((w) => TYPES[w.type].cook));
-    const patience = (longest * (1 + CONFIG.cookJitter) + 10 + count * 5) * (1.15 - p * 0.3);
+    const patience = (longest * (1 + CONFIG.cookJitter) + 10 + wants.length * 5) * (1.15 - p * 0.3);
     const seat = pick(free);
     state.seats[seat] = {
       id: nextId++,
@@ -639,7 +645,7 @@
       `<div>${SVG[k]}${TYPES[k].name}</div>`).join('');
     el.panelBody.innerHTML = `
       <ul class="rules">
-        <li>開店時、鍋には<b>煮えた具が6つ</b>仕込んであります。</li>
+        <li>開店時、鍋には<b>煮えた具が6つ</b>仕込んであり、最初のお客さんはそれを注文します。</li>
         <li>お客さんが注文すると、その具が鍋に入ります。</li>
         <li>鍋は<b>上から見えるだけ</b>。下に沈んだ具は見えません。</li>
         <li>具は<b>煮えても見た目が変わりません</b>。具ごとに煮える時間が違います。</li>
@@ -659,9 +665,17 @@
     el.overlay.classList.add('hidden');
     el.toast.textContent = 'いらっしゃいませ！';
     state.running = true;
-    prepPot();
-    // 開店と同時に全席満席でスタート（注文の具は仕込みの具の上に重なっていく）
-    for (let i = 0; i < CONFIG.seats; i++) spawnCustomer();
+    // 開店と同時に全席満席でスタート。最初のお客さんは仕込みの具（煮えている）をちょうど分け合って注文する
+    const prepped = prepPot().sort(() => Math.random() - 0.5);
+    const sizes = Array(CONFIG.seats).fill(1);
+    for (let k = CONFIG.seats; k < prepped.length; k++) sizes[k % CONFIG.seats]++;
+    sizes.sort(() => Math.random() - 0.5);
+    let cursor = 0;
+    for (const n of sizes) {
+      if (cursor >= prepped.length) break;
+      spawnCustomer(prepped.slice(cursor, cursor + n));
+      cursor += n;
+    }
     toast('いらっしゃいませ！ 満席です！');
     state.nextSpawn = 2;
     BGM.start();
