@@ -11,6 +11,13 @@
     stackMax: 3,          // 1 つの仕切りに重なる具の最大数
     seats: 4,             // カウンター席数
     pokeCooldown: 1000,   // 同じ具をツンツンできる間隔（ms）
+    missPenaltyRaw: 0.3,  // 「まだ固い」で、お客さん全員の我慢時間が減る秒数
+    missPenaltyWrong: 1,  // 「注文なし」「つつきすぎ」「からっぽ」で減る秒数
+    patienceBase: 8,      // 我慢時間の基本秒数
+    patiencePerItem: 3,   // 我慢時間：1 品あたりの追加秒数
+    comboStep: 20,        // コンボボーナス：1 コンボごとの加算額
+    comboMax: 10,         // コンボボーナスの上限段数
+    tipPerItem: 150,      // チップ：1 品あたりの最大額（早く出すほど多い）
     cookJitter: 0.25,     // 煮え時間のばらつき（±25%）
     prepped: 6,           // 開店時に仕込んである（煮えている）具の数
   };
@@ -329,7 +336,7 @@
     }
 
     const longest = Math.max(...wants.map((w) => TYPES[w.type].cook));
-    const patience = (longest * (1 + CONFIG.cookJitter) + 10 + wants.length * 5) * (1.15 - p * 0.3);
+    const patience = (longest * (1 + CONFIG.cookJitter) + CONFIG.patienceBase + wants.length * CONFIG.patiencePerItem) * (1.15 - p * 0.3);
     const seat = pick(free);
     state.seats[seat] = {
       id: nextId++,
@@ -370,6 +377,13 @@
     }, 600);
   }
 
+  // ハズレのツンツン：見ているお客さん全員がイライラして我慢時間が減る
+  function annoy(sec) {
+    for (const c of state.seats) {
+      if (c && !c.leaving) { c.leftAt -= sec; c.annoyedAt = state.time; }
+    }
+  }
+
   // ============================================================
   //  ツンツン
   // ============================================================
@@ -383,6 +397,7 @@
       ripple(slotEl);
       sfx.splash();
       floatText(slotEl, 'からっぽ', 'none');
+      annoy(CONFIG.missPenaltyWrong);
       return;
     }
 
@@ -395,6 +410,7 @@
       state.combo = 0;
       wobble(slotEl, 0.5);
       floatText(slotEl, 'つつきすぎ！', 'fast');
+      annoy(CONFIG.missPenaltyWrong);
       sfx.no();
       return;
     }
@@ -406,6 +422,7 @@
     const order = findOrder(item.type);
     if (!order) {
       floatText(slotEl, '注文なし', 'none');
+      annoy(CONFIG.missPenaltyWrong);
       return;
     }
 
@@ -413,6 +430,7 @@
     if (!cooked) {
       state.combo = 0;
       floatText(slotEl, 'まだ固い…', 'raw');
+      annoy(CONFIG.missPenaltyRaw);
       return;
     }
 
@@ -424,7 +442,7 @@
     order.customer.dirty = true;
     state.served++;
     state.combo++;
-    const comboBonus = Math.min(state.combo - 1, 5) * 10;
+    const comboBonus = Math.min(state.combo - 1, CONFIG.comboMax) * CONFIG.comboStep;
     const gain = TYPES[item.type].price + comboBonus;
     state.score += gain;
     floatText(slotEl, `+¥${gain}${state.combo > 1 ? ` ${state.combo}連` : ''}`, 'ok');
@@ -433,7 +451,7 @@
     const c = order.customer;
     if (c.wants.every((w) => w.served)) {
       const remain = Math.max(0, (c.leftAt - state.time) / c.patience);
-      const tip = Math.round(remain * c.wants.length * 50 / 10) * 10;
+      const tip = Math.round(remain * c.wants.length * CONFIG.tipPerItem / 10) * 10;
       state.score += tip;
       state.happy++;
       if (tip > 0) toast(`まいど！ チップ ¥${tip}`);
@@ -544,6 +562,8 @@
           bar.classList.toggle('mid', r < 0.5 && r >= 0.25);
           bar.classList.toggle('low', r < 0.25);
         }
+        const cu = el.seats.children[i].querySelector('.customer');
+        if (cu) cu.classList.toggle('annoyed', c.annoyedAt !== undefined && state.time - c.annoyedAt < 0.6);
       }
     });
   }
@@ -665,7 +685,9 @@
         <li>具は<b>煮えても見た目が変わりません</b>。具ごとに煮える時間が違います。</li>
         <li>仕切りをタップして串で<b>ツンツン</b>。注文があって煮えていれば提供できます。</li>
         <li>同じ具は<b>1秒以上</b>あけてツンツン。つつきすぎると無効＆やり直し。</li>
+        <li><b>ハズレのツンツン</b>（まだ固い・注文なし・つつきすぎ・からっぽ）は、お客さんがイライラして待ってくれる時間が減ります。</li>
         <li>待たせすぎるとお客さんが帰って評判ダウン。♥が無くなると閉店です。</li>
+        <li>連続で出すとコンボボーナス、早く出すほどチップが増えます。</li>
       </ul>
       <div class="menu">${menu}</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:12px">ベスト売上：¥${loadBest().toLocaleString()}</div>`;

@@ -133,7 +133,14 @@ body { overflow-x: hidden; }
   display: grid; place-items: center;
   color: var(--good); font-weight: 800; font-size: 22px;
 }
-.face { font-size: 34px; line-height: 1; }
+.face { font-size: 34px; line-height: 1; position: relative; }
+.customer.annoyed .face { animation: shake .3s linear 2; }
+.customer.annoyed .face::after {
+  content: "💢";
+  position: absolute; right: -14px; top: -6px;
+  font-size: 18px;
+}
+.customer.annoyed .patience > div { background: var(--accent); }
 .patience {
   width: 80%; height: 6px;
   background: rgba(255, 255, 255, .15);
@@ -357,6 +364,7 @@ body { overflow-x: hidden; }
   100% { opacity: 0; transform: translate(-50%, -150%); }
 }
 @keyframes pulse { 50% { transform: translate(-50%, -55%) scale(1.06); } }
+@keyframes shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
 @keyframes simmer { to { transform: translate(34%, -34%); } }
 @keyframes enter { from { transform: translateY(20px); opacity: 0; } }
 @keyframes leave-happy { to { transform: translateY(-20px); opacity: 0; } }
