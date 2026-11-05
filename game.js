@@ -17,14 +17,14 @@
 
   // 具材：cook = 煮えるまでの基本秒数, unlock = 登場し始める経過秒数
   const TYPES = {
-    chikuwa:  { name: 'ちくわ',   cook: 5,  price: 120, unlock: 0 },
-    tamago:   { name: 'たまご',   cook: 8,  price: 130, unlock: 0 },
-    konnyaku: { name: 'こんにゃく', cook: 7, price: 100, unlock: 0 },
-    daikon:   { name: '大根',     cook: 13, price: 150, unlock: 0 },
-    hanpen:   { name: 'はんぺん', cook: 4,  price: 120, unlock: 25 },
-    atsuage:  { name: '厚揚げ',   cook: 9,  price: 150, unlock: 25 },
-    gyusuji:  { name: '牛すじ',   cook: 11, price: 200, unlock: 55 },
-    cabbage:  { name: 'ロールキャベツ', cook: 10, price: 180, unlock: 55 },
+    chikuwa:  { name: 'ちくわ',   cook: 2,  price: 120, unlock: 0 },
+    tamago:   { name: 'たまご',   cook: 5,  price: 130, unlock: 0 },
+    konnyaku: { name: 'こんにゃく', cook: 4, price: 100, unlock: 0 },
+    daikon:   { name: '大根',     cook: 10, price: 150, unlock: 0 },
+    hanpen:   { name: 'はんぺん', cook: 1,  price: 120, unlock: 25 },
+    atsuage:  { name: '厚揚げ',   cook: 6,  price: 150, unlock: 25 },
+    gyusuji:  { name: '牛すじ',   cook: 8, price: 200, unlock: 55 },
+    cabbage:  { name: 'ロールキャベツ', cook: 7, price: 180, unlock: 55 },
   };
 
   // ツンツンした時の音の高さ（やわらかい具は低く、弾力のある具は高く）
@@ -264,8 +264,9 @@
       .map((s, i) => ({ s, i }))
       .filter(({ s }) => s.length < CONFIG.stackMax);
     if (open.length === 0) return false;
-    // 注文の具は、まだ3段に達していない仕切りのどれかをランダムに選び、一番上に乗せる
-    const { i } = pick(open);
+    // 空の仕切りがあれば必ずそこへ。空きが無ければ、まだ3段に達していない仕切りをランダムに選んで一番上に乗せる
+    const empty = open.filter(({ s }) => s.length === 0);
+    const { i } = pick(empty.length > 0 ? empty : open);
     const base = TYPES[type].cook;
     state.slots[i].push({
       id: nextId++,
