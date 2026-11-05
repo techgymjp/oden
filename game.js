@@ -55,7 +55,7 @@
   const $ = (id) => document.getElementById(id);
   const el = {
     score: $('score'), time: $('time'), hearts: $('hearts'), mute: $('mute'),
-    seats: $('seats'), pot: $('pot'), toast: $('toast'),
+    seats: $('seats'), pot: $('pot'), toast: $('toast'), full: $('full'),
     overlay: $('overlay'), panelBody: $('panel-body'), start: $('start'),
   };
 
@@ -241,6 +241,7 @@
       seats: Array(CONFIG.seats).fill(null),
       nextSpawn: 0.3,
       slotKeys: Array(CONFIG.slots).fill(''),
+      potFull: false,
     };
   }
 
@@ -481,6 +482,14 @@
     el.score.textContent = `¥${state.score.toLocaleString()}`;
     el.time.textContent = `${Math.max(0, Math.ceil(CONFIG.gameLength - state.time))}`;
     el.hearts.textContent = '♥'.repeat(Math.max(0, state.hearts)) + '♡'.repeat(CONFIG.maxHearts - Math.max(0, state.hearts));
+
+    // 鍋が満杯なら「注文を受けられません」を表示
+    const full = potFreeSpace() === 0;
+    if (full !== state.potFull) {
+      state.potFull = full;
+      el.full.parentElement.classList.toggle('full', full);
+      if (full && state.running) sfx.no();
+    }
 
     // 鍋：一番上の具だけ描く（下の具は見えない）
     state.slots.forEach((stack, i) => {

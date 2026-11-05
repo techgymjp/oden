@@ -159,6 +159,25 @@ body { overflow-x: hidden; }
 
 /* ---------- Pot ---------- */
 .pot-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.pot-box { position: relative; width: 100%; max-width: 480px; }
+.pot-box.full .pot { box-shadow: 0 0 0 4px var(--accent), 0 10px 30px rgba(0, 0, 0, .5), inset 0 2px 0 rgba(255, 255, 255, .6); }
+.full-banner {
+  position: absolute;
+  left: 50%; top: 0;
+  transform: translate(-50%, -55%);
+  white-space: nowrap;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .4);
+  pointer-events: none; /* バナーの上からでもツンツンできる */
+  z-index: 4;
+  display: none;
+}
+.pot-box.full .full-banner { display: block; animation: pulse 1s ease-in-out infinite; }
 .pot {
   width: 100%;
   max-width: 480px;
@@ -327,6 +346,7 @@ body { overflow-x: hidden; }
   15% { opacity: 1; transform: translate(-50%, -50%); }
   100% { opacity: 0; transform: translate(-50%, -150%); }
 }
+@keyframes pulse { 50% { transform: translate(-50%, -55%) scale(1.06); } }
 @keyframes simmer { to { transform: translate(34%, -34%); } }
 @keyframes enter { from { transform: translateY(20px); opacity: 0; } }
 @keyframes leave-happy { to { transform: translateY(-20px); opacity: 0; } }
