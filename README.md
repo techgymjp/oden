@@ -55,8 +55,53 @@
 
 URL の末尾に `?debug` を付けると（例：`https://techgymjp.github.io/oden/?debug`）、各仕切りの中身を上から順に、煮え具合（煮／生）付きで表示します。
 
+## Android アプリ
+
+[Capacitor](https://capacitorjs.com/) でゲームのファイルをアプリに同梱し、Android アプリにしています（オフラインでも遊べます。フォントだけはネットに繋がっているときに読み込み、無ければ端末の丸ゴシックで表示）。
+構成は techgymjp/jet-fighter の `docs/ANDROID_PORTING.md`、techgymjp/jackal と同じです。
+
+- パッケージ名: `jp.techgym.oden`（アプリ名: おでんつんつん ／ 英語の端末では Oden Tsun-Tsun）
+- 縦画面固定・全画面・プレイ中は画面を消さない
+- 画面: トップ（開店する・あそびかた）／あそびかた／プレイ（⏸ で一時停止）／ポーズ／結果
+- 戻るボタン: プレイ中はポーズ（ポーズ中なら再開）、あそびかたはトップへ、トップ・結果画面ではアプリを終了
+- 別アプリに切り替えると自動で一時停止して音を止める
+- シェアは Android の共有メニュー
+- 広告（AdMob）
+  - バナー: トップ・あそびかた・ポーズ・結果画面の下中央（プレイ中は鍋と重なるので出さない）
+  - 全画面広告（インタースティシャル）: 「開店する」（トップ・あそびかたから）、「トップへ」（あそびかた・ポーズ・結果から）、ポーズ画面の「再開する」、結果画面の「もう一度」のたびに毎回
+  - リワード広告（チート）: 評判（♥）が尽きたら「広告を見て続ける」（1 ゲーム 2 回まで）。お客さんが怒って帰るところを見届けられるよう 2.5 秒後に出し、8 秒で自動的に閉店へ。
+    見終わると ♥1 で営業を再開し、待っているお客さんも少し落ち着く。使ったことは結果画面とシェア文に「コンティニュー N 回」と出る
+  - EU など同意が必要な地域ではトップ画面に「広告の設定」
+- トップ画面にバージョン（ビルド番号）とプライバシーポリシーへのリンク
+
+ビルドは GitHub Actions（`.github/workflows/android.yml`）で行います。
+
+1. `npm ci` → `npm run build`（`www/` に Web ファイルをコピーし、`ads-config.js` と `build-info.js` を生成）→ `npx cap sync android` → `./gradlew assembleDebug`
+2. 既定ブランチなら、Release `android-latest` の `oden.apk` を差し替え（動作確認用・テスト広告）
+   - リリース画面: https://github.com/techgymjp/oden/releases/tag/android-latest （QR コード: `docs/apk-qr.png`）
+   - APK 直接: https://github.com/techgymjp/oden/releases/latest/download/oden.apk
+3. GitHub Secrets に署名鍵（`ANDROID_KEYSTORE_BASE64` / `ANDROID_KEYSTORE_PASSWORD` / `ANDROID_KEY_ALIAS` / `ANDROID_KEY_PASSWORD`）があれば、本番広告で署名付き AAB を作り Artifact（`oden-release-aab`）に上げる
+
+![APK のリリース画面の QR コード](docs/apk-qr.png)
+
+AdMob のアプリ ID は `android/app/src/main/res/values/strings.xml` の `admob_app_id`、本番の広告ユニット ID は `ads.js` の `UNITS.android.production` にあります（未設定の間は Google のテスト用アプリ ID。広告ユニット ID が空の種類は本番ビルドで出さない）。
+動作確認用 APK はどれもテスト広告、Google Play 用の AAB は本番の広告です。
+
+手元で試すとき: `npm install` → `npm run android:sync` → `npm run android:open`（Android Studio が必要）。
+アイコンと起動画面は `assets/` の元画像から `npx @capacitor/assets generate --android` で生成しています。
+
+## ライセンス
+
+著作権はテックジム株式会社に帰属します（All rights reserved）。許可なく複製・改変・再配布すること、Web サイトやアプリ（Google Play、App Store など）として公開・販売すること、名前・ロゴ・アイコン・画像を使うことを禁止します。
+テックジムの受講生が学習目的で複製・改変することは許可しますが、アプリストアでの公開・広告の掲載・販売などの商用利用は禁止です。詳しくは `LICENSE` を見てください。
+
 ## ファイル構成
 
 - `index.html` — 画面
 - `style.css` — 見た目
 - `game.js` — ゲームロジック
+- `ads.js` — 広告（Android アプリのときだけ動く）
+- `ads-config.js` / `build-info.js` — 広告のモードとバージョン表示（アプリのビルド時に生成し直す）
+- `scripts/build-web.js` — アプリに同梱する Web ファイルを `www/` に用意する
+- `android/` — Android プロジェクト（Capacitor）
+- `assets/` — アイコンと起動画面の元画像
