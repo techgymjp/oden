@@ -1,0 +1,8 @@
+{
+  "appId": "jp.techgym.oden",
+  "appName": "おでんつんつん",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#2b1d14"
+  }
+}

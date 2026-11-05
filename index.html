@@ -16,7 +16,7 @@
       <div class="hud-item"><span class="hud-label" data-i18n="sales">売上</span><span id="score" class="hud-value">¥0</span></div>
       <div class="hud-item"><span class="hud-label" data-i18n="time">のこり</span><span id="time" class="hud-value">--</span></div>
       <div class="hud-item"><span class="hud-label" data-i18n="rep">評判</span><span id="hearts" class="hud-value hearts"></span></div>
-      <button class="icon-btn lang-btn" type="button" data-lang-toggle>EN</button>
+      <button id="pause" class="icon-btn" type="button" aria-label="一時停止" data-i18n-aria="pauseAria">⏸</button>
       <button id="mute" class="icon-btn" type="button" aria-label="音のオン・オフ" data-i18n-aria="mute">🔊</button>
     </header>
 
@@ -40,10 +40,13 @@
       <button class="icon-btn lang-btn panel-lang" type="button" data-lang-toggle>EN</button>
       <h1 class="title" data-i18n="title">おでん<span>つんつん</span></h1>
       <div id="panel-body"></div>
-      <button id="start" class="start-btn" type="button">開店する</button>
+      <div id="panel-actions" class="panel-actions"></div>
     </div>
   </div>
 
+  <script src="build-info.js"></script>
+  <script src="ads-config.js"></script>
+  <script src="ads.js"></script>
   <script src="game.js"></script>
 </body>
 </html>

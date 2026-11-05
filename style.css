@@ -306,7 +306,28 @@ body { overflow-x: hidden; }
 .overlay.hidden { display: none; }
 /* ルール部分だけスクロールし、ボタンは常にパネルの下に見えている */
 #panel-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.start-btn { flex: 0 0 auto; align-self: center; margin-top: 10px; }
+.panel-actions { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 12px; }
+.sub-btn {
+  background: transparent; color: var(--wood-dark);
+  border: 2px solid var(--wood-dark); border-radius: 999px;
+  font: inherit; font-weight: 800; font-size: 16px;
+  padding: 8px 28px; cursor: pointer;
+}
+.start-btn:disabled { opacity: .6; }
+/* 全画面広告の表示中はパネルを隠す */
+.overlay.busy .panel { visibility: hidden; }
+/* アプリでは画面の下にバナー広告が出るので、パネルをその分上げる */
+.native .overlay { padding-bottom: 66px; }
+.native .panel { max-height: calc(100vh - 98px); max-height: calc(100dvh - 98px); }
+.top-art { display: flex; justify-content: center; gap: 6px; margin: 4px 0 10px; }
+.top-art svg { width: 44px; height: 44px; filter: drop-shadow(0 2px 2px rgba(80, 40, 0, .3)); }
+.tagline { font-size: 17px; font-weight: 800; line-height: 1.6; margin: 0 0 10px; }
+.best-line { font-size: 14px; color: var(--muted); margin: 0 0 8px; }
+.legal { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+.legal a { color: var(--muted); }
+.big-msg { font-size: 24px; font-weight: 800; margin: 8px 0 8px; }
+.cont-msg { font-size: 15px; line-height: 1.6; margin: 0 0 8px; }
+.icon-btn:disabled { opacity: .35; cursor: default; }
 .panel {
   position: relative;
   background: var(--paper);

@@ -63,16 +63,24 @@
       ],
       bestSales: (v) => `ベスト売上：¥${v}`,
       start: '開店する', again: 'もう一度',
+      tagline: '見た目じゃわからない！<br>煮えたおでんを串でツンツンして出そう',
+      play: '開店する', howto: 'あそびかた', toTop: 'トップへ', resume: '再開する',
+      paused: '一時停止中', pauseAria: '一時停止',
+      privacy: 'プライバシーポリシー', privacyUrl: 'https://techgym.jp/privacy-policy/', adSettings: '広告の設定',
+      contTitle: '評判が尽きた…', contMsg: '広告を見ると評判が ♥1 つ戻り、営業を続けられます',
+      contLeft: (n) => `あと ${n} 回使えます`,
+      contWatch: '▶ 広告を見て続ける', contNo: (s) => `やめる（${s}）`,
+      contLoading: '広告を読み込み中…', contFail: '広告を読み込めませんでした',
+      contDone: '評判が戻った！ 営業再開！',
+      continues: (n) => `コンティニュー：${n} 回`,
       closed: '評判が落ちて閉店…', done: '本日の営業終了！',
       resSales: '売上', newBest: 'ベスト更新！', best: (v) => `ベスト：¥${v}`,
       served: (n) => `提供した具：${n} 個`,
       happy: (h) => `満足したお客さん：${h} 人`, angry: (a) => `怒って帰ったお客さん：${a} 人`,
       share: '📣 結果をシェア', shareX: '𝕏 でポスト', copied: '✅ コピーしました',
       copyPrompt: 'この文章をコピーしてシェアしてください',
-      shareText: (score, stay, served, happy) =>
-        `おでんつんつんで売上 ¥${score}（${stay}）
-提供 ${served} 個・満足したお客さん ${happy} 人
-#おでんつんつん`,
+      shareText: (score, stay, served, happy, cont) =>
+        `おでんつんつんで売上 ¥${score}（${stay}）\n提供 ${served} 個・満足したお客さん ${happy} 人${cont ? `・コンティニュー ${cont} 回` : ''}\n#おでんつんつん`,
       stayClosed: (sec) => `${sec}秒で閉店…`, stayDone: '完走！',
       empty: 'からっぽ', tooFast: 'つつきすぎ！', noOrder: '注文なし', raw: 'まだ固い…',
       combo: (n) => ` ${n}連`,
@@ -104,16 +112,24 @@
       ],
       bestSales: (v) => `Best sales: ¥${v}`,
       start: 'Open shop', again: 'Play again',
+      tagline: 'They all look the same!<br>Poke the oden and serve what\'s cooked',
+      play: 'Open shop', howto: 'How to play', toTop: 'Top', resume: 'Resume',
+      paused: 'Paused', pauseAria: 'Pause',
+      privacy: 'Privacy policy', privacyUrl: 'https://techgym.jp/privacy-policy-en/', adSettings: 'Ad settings',
+      contTitle: 'Your rating hit zero…', contMsg: 'Watch an ad to get ♥1 back and keep the shop open',
+      contLeft: (n) => `${n} left`,
+      contWatch: '▶ Watch ad & continue', contNo: (s) => `No thanks (${s})`,
+      contLoading: 'Loading ad…', contFail: 'Couldn\'t load an ad',
+      contDone: 'Rating restored! Back to work!',
+      continues: (n) => `Continues: ${n}`,
       closed: 'Your rating hit zero. Shop closed…', done: "That's a wrap for today!",
       resSales: 'Sales', newBest: 'New best!', best: (v) => `Best: ¥${v}`,
       served: (n) => `Items served: ${n}`,
       happy: (h) => `Happy customers: ${h}`, angry: (a) => `Angry customers: ${a}`,
       share: '📣 Share result', shareX: 'Post on 𝕏', copied: '✅ Copied!',
       copyPrompt: 'Copy this text to share',
-      shareText: (score, stay, served, happy) =>
-        `I made ¥${score} in Oden Tsun-Tsun (${stay})
-Served ${served} items · ${happy} happy customers
-#OdenTsunTsun #おでんつんつん`,
+      shareText: (score, stay, served, happy, cont) =>
+        `I made ¥${score} in Oden Tsun-Tsun (${stay})\nServed ${served} items · ${happy} happy customers${cont ? ` · ${cont} continue${cont > 1 ? 's' : ''}` : ''}\n#OdenTsunTsun #おでんつんつん`,
       stayClosed: (sec) => `closed after ${sec}s…`, stayDone: 'made it to closing!',
       empty: 'Empty', tooFast: 'Too fast!', noOrder: 'No order', raw: 'Not yet…',
       combo: (n) => ` x${n}`,
@@ -168,7 +184,7 @@ Served ${served} items · ${happy} happy customers
   const el = {
     score: $('score'), time: $('time'), hearts: $('hearts'), mute: $('mute'),
     seats: $('seats'), pot: $('pot'), toast: $('toast'), full: $('full'),
-    overlay: $('overlay'), panelBody: $('panel-body'), start: $('start'),
+    overlay: $('overlay'), panelBody: $('panel-body'), actions: $('panel-actions'), pause: $('pause'),
     langBtns: document.querySelectorAll('[data-lang-toggle]'),
   };
 
@@ -182,6 +198,12 @@ Served ${served} items · ${happy} happy customers
     if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   }
+  // 広告の表示中・裏に回ったときに音を止める（ads.js からも呼ばれる）
+  window.Sound = {
+    suspend() { if (audioCtx && audioCtx.state === 'running') audioCtx.suspend(); },
+    resume() { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); },
+  };
+
   function tone(freq, dur, type = 'sine', vol = 0.15, slideTo = null) {
     if (muted) return;
     try {
@@ -336,7 +358,7 @@ Served ${served} items · ${happy} happy customers
   //  状態
   // ============================================================
   let state = null;
-  let screen = 'title'; // 'title' | 'game' | 'result'
+  let screen = 'top'; // 'top' | 'howto' | 'game' | 'pause' | 'continue' | 'result'
   let nextId = 1;
   let rafId = 0;
   let lastFrame = 0;
@@ -356,6 +378,9 @@ Served ${served} items · ${happy} happy customers
       nextSpawn: 0.3,
       slotKeys: Array(CONFIG.slots).fill(''),
       potFull: false,
+      paused: false,            // 一時停止中（ポーズ画面・コンティニューの案内中）
+      offering: false,          // コンティニューの案内中
+      continues: 0,             // リワード広告で続けた回数
     };
   }
 
@@ -492,7 +517,7 @@ Served ${served} items · ${happy} happy customers
   //  ツンツン
   // ============================================================
   function poke(slotIdx) {
-    if (!state || !state.running) return;
+    if (!state || !state.running || state.paused) return;
     const stack = state.slots[slotIdx];
     const slotEl = el.pot.children[slotIdx];
     showSkewer(slotEl);
@@ -570,7 +595,7 @@ Served ${served} items · ${happy} happy customers
   function tick(ts) {
     const dt = Math.min(0.1, (ts - lastFrame) / 1000 || 0);
     lastFrame = ts;
-    if (state.running) update(dt);
+    if (state.running && !state.paused) update(dt);
     render();
     rafId = requestAnimationFrame(tick);
   }
@@ -603,7 +628,12 @@ Served ${served} items · ${happy} happy customers
       }
     }
 
-    if (state.hearts <= 0 || state.time >= CONFIG.gameLength) endGame();
+    if (state.hearts <= 0) {
+      if (canContinue()) offerContinue();
+      else endGame();
+    } else if (state.time >= CONFIG.gameLength) {
+      endGame();
+    }
   }
 
   // ============================================================
@@ -783,24 +813,217 @@ Served ${served} items · ${happy} happy customers
     try { localStorage.setItem('oden-tsuntsun-best', String(v)); } catch (_) { /* noop */ }
   }
 
-  function showTitle() {
-    screen = 'title';
+  // ============================================================
+  //  アプリ（Android / Capacitor）と広告
+  // ============================================================
+  // Android アプリ（Capacitor）で動いているか。Web 版では Capacitor がないので何もしない
+  const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  const plugin = (name) => (NATIVE && window.Capacitor.Plugins ? window.Capacitor.Plugins[name] : null);
+  if (NATIVE) document.body.classList.add('native');
+  // ads.js が無くても動くように（Web 版でも ads.js は読み込むが、念のため）
+  const Ads = window.Ads || {
+    available: false, canReward: false, showing: false, privacyOptionsRequired: false,
+    initDone: Promise.resolve(), showInterstitial: async () => {}, showRewarded: async () => 'unavailable',
+    setBanner() {}, showPrivacyOptions: async () => {},
+  };
+
+  // パネル（トップ・あそびかた・ポーズ・コンティニュー・結果）の下のボタン
+  function setActions(buttons) {
+    el.actions.innerHTML = '';
+    for (const b of buttons) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = b.primary ? 'start-btn' : 'sub-btn';
+      // 主ボタンは従来どおり id="start"（自動テストなどから押せるように）
+      if (b.id || b.primary) btn.id = b.id || 'start';
+      btn.textContent = b.label;
+      btn.addEventListener('click', b.onClick);
+      el.actions.appendChild(btn);
+    }
+  }
+
+  function setScreen(name) {
+    screen = name;
+    renderScreen();
+  }
+
+  // 今の画面を今の言語で描く
+  function renderScreen() {
+    el.pause.disabled = screen !== 'game';
+    if (screen === 'game') { el.overlay.classList.add('hidden'); updateBanner(); return; }
+    if (screen === 'top') renderTop();
+    else if (screen === 'howto') renderHowTo();
+    else if (screen === 'pause') renderPause();
+    else if (screen === 'continue') renderContinue();
+    else if (screen === 'result') renderResult();
+    el.overlay.classList.remove('hidden');
+    el.panelBody.scrollTop = 0;
+    updateBanner();
+  }
+
+  // トップ画面：ゲーム名・ひとこと・ベスト記録と「開店する」「あそびかた」だけ
+  function renderTop() {
+    const art = ['konnyaku', 'tamago', 'daikon', 'cabbage', 'chikuwa'].map((k) => SVG[k]).join('');
+    const ver = window.APP_VERSION && window.APP_VERSION !== 'dev' ? `<span>${window.APP_VERSION}</span> · ` : '';
+    el.panelBody.innerHTML = `
+      <div class="top-art">${art}</div>
+      <p class="tagline">${T().tagline}</p>
+      <p class="best-line">${T().bestSales(loadBest().toLocaleString())}</p>
+      <p class="legal">${ver}<a href="${T().privacyUrl}" target="_blank" rel="noopener">${T().privacy}</a><span id="adPrivacy" ${Ads.privacyOptionsRequired ? '' : 'hidden'}> · <a href="#" id="adPrivacyLink">${T().adSettings}</a></span></p>`;
+    const link = document.getElementById('adPrivacyLink');
+    link.addEventListener('click', (e) => { e.preventDefault(); Ads.showPrivacyOptions(); });
+    setActions([
+      { label: T().play, primary: true, onClick: play },
+      { label: T().howto, onClick: () => setScreen('howto') },
+    ]);
+  }
+
+  // あそびかた画面：ルールと具のメニュー
+  function renderHowTo() {
     const menu = Object.keys(TYPES).map((k) => `<div>${SVG[k]}${tn(k)}</div>`).join('');
     el.panelBody.innerHTML = `
       <ul class="rules">${T().rules.map((r) => `<li>${r}</li>`).join('')}</ul>
-      <div class="menu">${menu}</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${T().bestSales(loadBest().toLocaleString())}</div>`;
-    el.start.textContent = T().start;
-    el.overlay.classList.remove('hidden');
+      <div class="menu">${menu}</div>`;
+    setActions([
+      { label: T().play, primary: true, onClick: play },
+      { label: T().toTop, onClick: goTop },
+    ]);
   }
 
+  function renderPause() {
+    el.panelBody.innerHTML = `<p class="big-msg">${T().paused}</p>
+      <p class="best-line">¥${state.score.toLocaleString()} · ${Math.max(0, Math.ceil(CONFIG.gameLength - state.time))}s</p>`;
+    setActions([
+      { label: T().resume, primary: true, onClick: resume },
+      { label: T().toTop, onClick: goTop },
+    ]);
+  }
+
+  // ---------- 全画面広告（Android アプリのみ） ----------
+  // 「開店する」（トップ・あそびかたから）、「トップへ」（あそびかた・ポーズ・結果から）、
+  // ポーズ画面からの「再開」、結果画面の「もう一度」のたびに毎回出す
+  let adBusy = false;
+  async function withInterstitial(next) {
+    if (adBusy) return;
+    if (Ads.available) {
+      adBusy = true;
+      el.overlay.classList.add('busy');
+      updateBanner();
+      await Ads.showInterstitial(3000);
+      el.overlay.classList.remove('busy');
+      adBusy = false;
+    }
+    next();
+  }
+  function play() { withInterstitial(startGame); }
+  function goTop() {
+    withInterstitial(() => {
+      if (state) { state.running = false; state.paused = false; state.offering = false; }
+      BGM.stop();
+      stopContinueTimer();
+      setScreen('top');
+    });
+  }
+  function pauseGame() {
+    if (screen !== 'game' || !state.running || state.offering) return;
+    state.paused = true;
+    BGM.stop();
+    setScreen('pause');
+  }
+  function resume() {
+    withInterstitial(() => {
+      if (screen !== 'pause') return;
+      state.paused = false;
+      setScreen('game');
+      BGM.start();
+    });
+  }
+
+  // ---------- バナー広告：トップ・あそびかた・ポーズ・結果画面だけ（プレイ中は鍋と重なるので出さない） ----------
+  function updateBanner() {
+    Ads.setBanner(!adBusy && ['top', 'howto', 'pause', 'result'].includes(screen));
+  }
+
+  // ---------- リワード広告のチート：評判（♥）が尽きたら、広告を見て ♥1 で営業を続ける ----------
+  // お客さんが怒って帰るところ（失敗の様子）を見届けられるよう少し待ってから案内し、数秒で自動的に閉店へ進む
+  const CONTINUE_DELAY = 2.5; // 案内を出すまでの秒数
+  const CONTINUE_WAIT = 8;    // 案内を出しておく秒数
+  const CONTINUE_MAX = 2;     // 1 ゲームで使える回数
+  const cont = { timer: 0, left: 0, busy: false, note: '' };
+  function canContinue() { return Ads.canReward && state.continues < CONTINUE_MAX; }
+  function offerContinue() {
+    state.paused = true;
+    state.offering = true;
+    BGM.stop();
+    const s = state;
+    setTimeout(() => {
+      if (state !== s || !s.offering) return;
+      Object.assign(cont, { left: CONTINUE_WAIT, busy: false, note: '' });
+      setScreen('continue');
+      stopContinueTimer();
+      cont.timer = setInterval(() => {
+        if (cont.busy || screen !== 'continue') return;
+        cont.left--;
+        if (cont.left <= 0) declineContinue();
+        else { const b = document.getElementById('cont-no'); if (b) b.textContent = T().contNo(cont.left); }
+      }, 1000);
+    }, CONTINUE_DELAY * 1000);
+  }
+  function stopContinueTimer() { clearInterval(cont.timer); cont.timer = 0; }
+  function renderContinue() {
+    el.panelBody.innerHTML = `
+      <p class="big-msg">${T().contTitle}</p>
+      <p class="cont-msg">${T().contMsg}</p>
+      <p class="best-line">${cont.note || T().contLeft(CONTINUE_MAX - state.continues)}</p>`;
+    setActions([
+      { label: cont.busy ? T().contLoading : T().contWatch, primary: true, id: 'cont-watch', onClick: watchContinue },
+      { label: T().contNo(cont.left), id: 'cont-no', onClick: declineContinue },
+    ]);
+    if (cont.busy) document.getElementById('cont-watch').disabled = true;
+  }
+  function declineContinue() {
+    if (screen !== 'continue' || cont.busy) return;
+    stopContinueTimer();
+    state.offering = false;
+    state.paused = false;
+    endGame();
+  }
+  async function watchContinue() {
+    if (screen !== 'continue' || cont.busy) return;
+    cont.busy = true;
+    renderContinue();
+    const result = await Ads.showRewarded();
+    cont.busy = false;
+    if (screen !== 'continue') return;
+    if (result === 'unavailable') {
+      cont.note = T().contFail;
+      renderContinue();
+      document.getElementById('cont-watch').disabled = true;
+      setTimeout(declineContinue, 2000);
+      return;
+    }
+    if (result !== 'rewarded') { declineContinue(); return; }
+    // 最後まで見たら ♥1 で再開。待っているお客さんも少し落ち着く（すぐにまた帰らないように）
+    stopContinueTimer();
+    state.continues++;
+    state.hearts = 1;
+    for (const c of state.seats) {
+      if (c && !c.leaving) c.leftAt = Math.max(c.leftAt, state.time + c.patience * 0.5);
+    }
+    state.offering = false;
+    state.paused = false;
+    setScreen('game');
+    toast(T().contDone);
+    BGM.start();
+  }
 
   function startGame() {
+    stopContinueTimer();
     state = newState();
     buildBoard();
-    el.overlay.classList.add('hidden');
     el.toast.textContent = T().welcome;
-    screen = 'game';
+    setScreen('game');
+    fitPot();
     state.running = true;
     // 開店と同時に全席満席でスタート。最初のお客さんは仕込みの具（煮えている）をちょうど分け合って注文する
     const prepped = prepPot().sort(() => Math.random() - 0.5);
@@ -823,7 +1046,7 @@ Served ${served} items · ${happy} happy customers
   // ============================================================
   function shareText() {
     const stay = state.hearts <= 0 ? T().stayClosed(Math.floor(state.time)) : T().stayDone;
-    return T().shareText(state.score.toLocaleString(), stay, state.served, state.happy);
+    return T().shareText(state.score.toLocaleString(), stay, state.served, state.happy, state.continues);
   }
 
   // シェアするURL（紹介記事）
@@ -837,6 +1060,12 @@ Served ${served} items · ${happy} happy customers
     x.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
     const btn = document.getElementById('share');
     btn.addEventListener('click', async () => {
+      // Android アプリでは Android の共有メニュー
+      const nativeShare = plugin('Share');
+      if (nativeShare) {
+        try { await nativeShare.share({ title: T().docTitle, text, url, dialogTitle: T().share }); } catch (e) { /* キャンセル */ }
+        return;
+      }
       // スマホなどは OS の共有シート、使えなければクリップボードにコピー
       if (navigator.share) {
         try { await navigator.share({ title: T().docTitle, text, url }); return; } catch (e) {
@@ -860,11 +1089,10 @@ Served ${served} items · ${happy} happy customers
     const isBest = state.score > best;
     if (isBest) saveBest(state.score);
     lastResult = { best, isBest };
-    showResult();
+    setScreen('result');
   }
 
-  function showResult() {
-    screen = 'result';
+  function renderResult() {
     const { best, isBest } = lastResult;
     el.panelBody.innerHTML = `
       <p style="margin:0 0 4px;font-weight:800">${state.hearts <= 0 ? T().closed : T().done}</p>
@@ -875,14 +1103,17 @@ Served ${served} items · ${happy} happy customers
         <div>${T().served(state.served)}</div>
         <div>${T().happy(state.happy)}</div>
         <div>${T().angry(state.angry)}</div>
+        ${state.continues ? `<div>${T().continues(state.continues)}</div>` : ''}
       </div>
       <div class="share">
         <button id="share" class="share-btn" type="button">${T().share}</button>
         <a id="share-x" class="share-btn x" target="_blank" rel="noopener">${T().shareX}</a>
       </div>`;
     setupShare();
-    el.start.textContent = T().again;
-    el.overlay.classList.remove('hidden');
+    setActions([
+      { label: T().again, primary: true, onClick: play },
+      { label: T().toTop, onClick: goTop },
+    ]);
   }
 
   // 鍋が画面の下からはみ出さないよう、残りの高さに合わせて幅を決める（3:2）
@@ -907,8 +1138,7 @@ Served ${served} items · ${happy} happy customers
       state.seats.forEach((c) => { if (c) c.dirty = true; });
       state.slotKeys.fill('');
     }
-    if (screen === 'title') showTitle();
-    else if (screen === 'result') showResult();
+    renderScreen();
     fitPot();
   }
 
@@ -916,12 +1146,38 @@ Served ${served} items · ${happy} happy customers
   // ============================================================
   //  初期化
   // ============================================================
-  el.start.addEventListener('click', startGame);
+  el.pause.addEventListener('click', pauseGame);
+
+  // 裏に回ったら一時停止して音を止める（広告の表示中は広告側が音を止めている）
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      pauseGame();
+      Sound.suspend();
+    } else if (!Ads.showing) {
+      Sound.resume();
+    }
+  });
+
+  // Android の戻るボタン：プレイ中はポーズ（ポーズ中なら再開）、あそびかたはトップへ、
+  // トップ・結果画面ではアプリを終了、コンティニューの案内では「やめる」
+  if (plugin('App')) {
+    plugin('App').addListener('backButton', () => {
+      if (adBusy || Ads.showing) return;
+      if (screen === 'top' || screen === 'result') plugin('App').exitApp();
+      else if (screen === 'howto') goTop();
+      else if (screen === 'game') pauseGame();
+      else if (screen === 'pause') resume();
+      else if (screen === 'continue') declineContinue();
+    });
+  }
+
+  // EU など同意が必要な地域では、トップ画面に「広告の設定」を出す
+  Ads.initDone.then(() => { if (screen === 'top') renderTop(); });
   el.mute.addEventListener('click', () => {
     muted = !muted;
     el.mute.textContent = muted ? '🔇' : '🔊';
     if (muted) BGM.stop();
-    else if (state && state.running) BGM.start();
+    else if (screen === 'game' && state && state.running && !state.paused) BGM.start();
   });
 
   el.langBtns.forEach((b) => b.addEventListener('click', () => {
