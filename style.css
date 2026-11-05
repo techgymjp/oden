@@ -70,9 +70,13 @@ body { overflow-x: hidden; }
 }
 .seats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  min-height: 150px;
+  grid-template-columns: repeat(3, 1fr); /* スマホでは 3 席 × 2 列 */
+  gap: 8px 6px;
+}
+.seat { min-height: 120px; }
+@media (min-width: 540px) {
+  .seats { grid-template-columns: repeat(6, 1fr); } /* 広い画面では横一列 */
+  .seat { min-height: 150px; }
 }
 .seat {
   position: relative;

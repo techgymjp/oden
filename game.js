@@ -9,10 +9,10 @@
     maxHearts: 3,         // 評判（0 になると閉店）
     slots: 6,             // 鍋の仕切りの数（2行×3列）
     stackMax: 3,          // 1 つの仕切りに重なる具の最大数
-    seats: 4,             // カウンター席数
+    seats: 6,             // カウンター席数
     pokeCooldown: 1000,   // 同じ具をツンツンできる間隔（ms）
-    missPenaltyRaw: 0.3,  // 「まだ固い」で、お客さん全員の我慢時間が減る秒数
-    missPenaltyWrong: 1,  // 「注文なし」「つつきすぎ」「からっぽ」で減る秒数
+    missPenaltyRaw: 0.2,  // 「まだ固い」で、お客さん全員の我慢時間が減る秒数
+    missPenaltyWrong: 0.7,// 「注文なし」「つつきすぎ」「からっぽ」で減る秒数
     patienceBase: 8,      // 我慢時間の基本秒数
     patiencePerItem: 3,   // 我慢時間：1 品あたりの追加秒数
     comboStep: 20,        // コンボボーナス：1 コンボごとの加算額
@@ -479,8 +479,8 @@
     // 来店
     if (state.time >= state.nextSpawn) {
       if (spawnCustomer()) {
-        // 席が空けば 3 秒 → 1.5 秒間隔でどんどん来店
-        const base = 3 - p * 1.5;
+        // 席が空けば 2 秒 → 1 秒間隔でどんどん来店
+        const base = 2 - p * 1;
         state.nextSpawn = state.time + rand(base * 0.7, base * 1.2);
       } else {
         // 満席・鍋がいっぱいなら、空いた瞬間に次のお客さんが座る
