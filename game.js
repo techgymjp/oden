@@ -57,10 +57,15 @@
   // ============================================================
   let audioCtx = null;
   let muted = false;
+  function getCtx() {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
   function tone(freq, dur, type = 'sine', vol = 0.15, slideTo = null) {
     if (muted) return;
     try {
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      getCtx();
       const t = audioCtx.currentTime;
       const o = audioCtx.createOscillator();
       const g = audioCtx.createGain();
@@ -84,6 +89,121 @@
   };
 
   // ============================================================
+  //  BGM（WebAudio で鳴らすオリジナルのポップな曲。終盤ほどテンポアップ）
+  // ============================================================
+  const BGM = (() => {
+    const midi = (m) => 440 * Math.pow(2, (m - 69) / 12);
+    // 1 小節 = 8 分音符 × 8。コード進行 C → Am → F → G を 2 周
+    const CHORDS = [
+      [36, [60, 64, 67]], [33, [60, 64, 69]], [29, [60, 65, 69]], [31, [59, 62, 67]],
+    ];
+    const MELODY = [
+      72, 0, 76, 79, 76, 0, 72, 74,
+      76, 0, 0, 74, 72, 0, 69, 0,
+      69, 72, 77, 0, 76, 74, 72, 0,
+      74, 0, 79, 0, 77, 76, 74, 0,
+      79, 0, 76, 79, 81, 79, 76, 0,
+      76, 74, 72, 0, 74, 76, 72, 0,
+      77, 0, 76, 0, 74, 72, 74, 76,
+      79, 0, 0, 0, 74, 0, 79, 0,
+    ];
+    let timer = null;
+    let master = null;
+    let noise = null;
+    let step = 0;
+    let nextTime = 0;
+
+    function note(freq, t, dur, type, vol) {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(master);
+      o.start(t);
+      o.stop(t + dur + 0.02);
+    }
+    function hit(t, dur, vol, hp) {
+      const src = audioCtx.createBufferSource();
+      src.buffer = noise;
+      const f = audioCtx.createBiquadFilter();
+      f.type = 'highpass';
+      f.frequency.value = hp;
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f).connect(g).connect(master);
+      src.start(t);
+      src.stop(t + dur);
+    }
+    function kick(t) {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.frequency.setValueAtTime(150, t);
+      o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+      g.gain.setValueAtTime(0.9, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+      o.connect(g).connect(master);
+      o.start(t);
+      o.stop(t + 0.16);
+    }
+
+    function schedule(t, i, stepDur) {
+      const bar = Math.floor(i / 8) % 4;
+      const beat = i % 8;
+      const [root, chord] = CHORDS[bar];
+      // ベース：ルートとオクターブをぴょんぴょん
+      note(midi(root + (beat % 2 ? 12 : 0)), t, stepDur * 0.9, 'triangle', 0.5);
+      // 裏拍のコードカッティング
+      if (beat % 2) chord.forEach((m) => note(midi(m), t, stepDur * 0.5, 'square', 0.04));
+      // メロディ
+      const m = MELODY[i % MELODY.length];
+      if (m) note(midi(m), t, stepDur * 1.6, 'square', 0.09);
+      // ドラム
+      if (beat === 0 || beat === 4 || beat === 7) kick(t);
+      if (beat === 2 || beat === 6) hit(t, 0.12, 0.35, 1500);
+      hit(t, 0.03, beat % 2 ? 0.12 : 0.06, 7000);
+    }
+
+    function pump() {
+      const bpm = 132 + 24 * (state ? progress() : 0);
+      const stepDur = 60 / bpm / 2;
+      while (nextTime < audioCtx.currentTime + 0.15) {
+        schedule(nextTime, step, stepDur);
+        nextTime += stepDur;
+        step = (step + 1) % MELODY.length;
+      }
+    }
+
+    return {
+      start() {
+        if (timer || muted) return;
+        try {
+          getCtx();
+          if (!master) {
+            master = audioCtx.createGain();
+            master.gain.value = 0.18;
+            master.connect(audioCtx.destination);
+            noise = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.5, audioCtx.sampleRate);
+            const d = noise.getChannelData(0);
+            for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+          }
+          step = 0;
+          nextTime = audioCtx.currentTime + 0.05;
+          timer = setInterval(pump, 25);
+          pump();
+        } catch (_) { /* 音が出せない環境では無視 */ }
+      },
+      stop() {
+        clearInterval(timer);
+        timer = null;
+      },
+    };
+  })();
+
+  // ============================================================
   //  状態
   // ============================================================
   let state = null;
@@ -103,7 +223,7 @@
       combo: 0,
       slots: Array.from({ length: CONFIG.slots }, () => []), // 各仕切り：下 → 上の配列
       seats: Array(CONFIG.seats).fill(null),
-      nextSpawn: 1.0,
+      nextSpawn: 0.3,
       slotKeys: Array(CONFIG.slots).fill(''),
     };
   }
@@ -124,9 +244,9 @@
       .map((s, i) => ({ s, i }))
       .filter(({ s }) => s.length < CONFIG.stackMax);
     if (open.length === 0) return false;
-    // なるべく空いている仕切りへ。ただし時々は上に重ねて隠してしまう
-    const minLen = Math.min(...open.map(({ s }) => s.length));
-    const candidates = Math.random() < 0.6 ? open.filter(({ s }) => s.length === minLen) : open;
+    // 空の仕切りがあればまずそこへ（什器がすぐ埋まる）。埋まったら上に重ねて下の具を隠す
+    const empty = open.filter(({ s }) => s.length === 0);
+    const candidates = empty.length > 0 && Math.random() < 0.85 ? empty : open;
     const { i } = pick(candidates);
     const base = TYPES[type].cook;
     state.slots[i].push({
@@ -147,13 +267,15 @@
   // ============================================================
   //  お客さん
   // ============================================================
+  // 来店できたら true。席か鍋が空いていなければ false（すぐ再挑戦する）
   function spawnCustomer() {
     const free = state.seats.map((c, i) => (c ? -1 : i)).filter((i) => i >= 0);
-    if (free.length === 0) return;
+    if (free.length === 0) return false;
     const p = progress();
-    const maxItems = p < 0.15 ? 1 : p < 0.45 ? 2 : 3;
-    const count = Math.min(1 + Math.floor(Math.random() * maxItems), potFreeSpace());
-    if (count <= 0) return;
+    // 最初から 2〜3 品、後半は 2〜4 品をどんどん注文
+    const maxItems = p < 0.3 ? 3 : 4;
+    const count = Math.min(2 + Math.floor(Math.random() * (maxItems - 1)), potFreeSpace());
+    if (count <= 0) return false;
 
     const types = availableTypes();
     const wants = [];
@@ -178,6 +300,7 @@
     };
     sfx.plop();
     toast(`ご注文：${wants.map((w) => TYPES[w.type].name).join('・')}`);
+    return true;
   }
 
   // その具材を待っている一番古いお客さんの「注文」を返す
@@ -290,9 +413,14 @@
 
     // 来店
     if (state.time >= state.nextSpawn) {
-      spawnCustomer();
-      const base = 9 - p * 5; // 9 秒 → 4 秒間隔
-      state.nextSpawn = state.time + rand(base * 0.7, base * 1.2);
+      if (spawnCustomer()) {
+        // 席が空けば 3 秒 → 1.5 秒間隔でどんどん来店
+        const base = 3 - p * 1.5;
+        state.nextSpawn = state.time + rand(base * 0.7, base * 1.2);
+      } else {
+        // 満席・鍋がいっぱいなら、空いた瞬間に次のお客さんが座る
+        state.nextSpawn = state.time + 0.3;
+      }
     }
 
     // しびれを切らしたお客さん
@@ -450,11 +578,16 @@
     el.overlay.classList.add('hidden');
     el.toast.textContent = 'いらっしゃいませ！';
     state.running = true;
-    tone(0, 0.001); // iOS 向けに AudioContext を起こす
+    // 開店と同時に全席満席でスタート
+    for (let i = 0; i < CONFIG.seats; i++) spawnCustomer();
+    toast('いらっしゃいませ！ 満席です！');
+    state.nextSpawn = 2;
+    BGM.start();
   }
 
   function endGame() {
     state.running = false;
+    BGM.stop();
     const best = loadBest();
     const isBest = state.score > best;
     if (isBest) saveBest(state.score);
@@ -479,6 +612,8 @@
   el.mute.addEventListener('click', () => {
     muted = !muted;
     el.mute.textContent = muted ? '🔇' : '🔊';
+    if (muted) BGM.stop();
+    else if (state && state.running) BGM.start();
   });
 
   state = newState();
