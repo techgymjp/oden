@@ -78,7 +78,7 @@
       combo: (n) => ` ${n}連`,
       order: (names) => `ご注文：${names.join('・')}`,
       thanks: 'まいど！', tip: (v) => `まいど！ チップ ¥${v}`,
-      angryLeft: 'お客さんが怒って帰ってしまった…（具は鍋に残ります）',
+      angryLeft: 'お客さんが怒って帰った…（具は鍋に残る）',
       welcome: 'いらっしゃいませ！', welcomeFull: 'いらっしゃいませ！ 満席です！',
       slot: (i, names) => `仕切り${i}：${names.length ? names.join('の下に') : '空'}`,
       dbgLayer: (k, name, cooked) => `${k}段目 ${name} ${cooked ? '煮' : '生'}`, dbgEmpty: '空',
@@ -119,7 +119,7 @@ Served ${served} items · ${happy} happy customers
       combo: (n) => ` x${n}`,
       order: (names) => `Order: ${names.join(', ')}`,
       thanks: 'Thank you!', tip: (v) => `Thank you! Tip ¥${v}`,
-      angryLeft: 'A customer stormed off… (their items stay in the pot)',
+      angryLeft: 'A customer stormed off… (items stay)',
       welcome: 'Welcome!', welcomeFull: 'Welcome! Full house!',
       slot: (i, names) => `Slot ${i}: ${names.length ? names.join(', then ') : 'empty'}`,
       dbgLayer: (k, name, cooked) => `L${k} ${name} ${cooked ? 'done' : 'raw'}`, dbgEmpty: 'empty',
@@ -669,21 +669,29 @@ Served ${served} items · ${happy} happy customers
     });
   }
 
+  // 席の描画。HTML を作るのは来店した時だけ（入店アニメも 1 回だけ）。
+  // その後は、出した品・帰る時の表情・言語だけを書き換える
   function renderSeat(i) {
     const seatEl = el.seats.children[i];
     const c = state.seats[i];
     seatEl.className = 'seat' + (c ? '' : ' empty');
-    if (!c) { seatEl.innerHTML = ''; return; }
-    const cls = c.leaving ? ` leaving-${c.leaving}` : '';
-    const face = c.leaving === 'happy' ? '😋' : c.leaving === 'angry' ? '😠' : c.face;
-    seatEl.innerHTML = `
-      <div class="customer${cls}">
-        <div class="bubble">${c.wants.map((w) =>
-          `<span class="want${w.served ? ' served' : ''}" title="${tn(w.type)}">${SVG[w.type]}</span>`).join('')}
-        </div>
-        <div class="face">${face}</div>
-        <div class="patience"><div></div></div>
-      </div>`;
+    if (!c) { seatEl.innerHTML = ''; delete seatEl.dataset.cid; return; }
+    if (seatEl.dataset.cid !== String(c.id)) {
+      seatEl.dataset.cid = String(c.id);
+      seatEl.innerHTML = `
+        <div class="customer">
+          <div class="bubble">${c.wants.map((w) => `<span class="want">${SVG[w.type]}</span>`).join('')}</div>
+          <div class="face"></div>
+          <div class="patience"><div></div></div>
+        </div>`;
+    }
+    const cu = seatEl.firstElementChild;
+    if (c.leaving) cu.classList.add(`leaving-${c.leaving}`);
+    cu.querySelector('.face').textContent = c.leaving === 'happy' ? '😋' : c.leaving === 'angry' ? '😠' : c.face;
+    cu.querySelectorAll('.want').forEach((n, k) => {
+      n.classList.toggle('served', c.wants[k].served);
+      n.title = tn(c.wants[k].type);
+    });
   }
 
   function buildBoard() {
@@ -875,6 +883,17 @@ Served ${served} items · ${happy} happy customers
     el.overlay.classList.remove('hidden');
   }
 
+  // 鍋が画面の下からはみ出さないよう、残りの高さに合わせて幅を決める（3:2）
+  function fitPot() {
+    const box = el.full.parentElement;
+    box.style.maxWidth = '';
+    const top = box.getBoundingClientRect().top + window.scrollY;
+    const hint = document.querySelector('.pot-hint');
+    const hintH = hint && hint.offsetParent ? hint.offsetHeight + 8 : 0;
+    const avail = window.innerHeight - top - hintH - 10;
+    box.style.maxWidth = `${Math.max(200, Math.min(480, avail * 1.5))}px`;
+  }
+
   // 画面上の固定テキストを今の言語で書き換える
   function applyLang() {
     document.documentElement.lang = lang;
@@ -888,6 +907,7 @@ Served ${served} items · ${happy} happy customers
     }
     if (screen === 'title') showTitle();
     else if (screen === 'result') showResult();
+    fitPot();
   }
 
 
@@ -907,6 +927,8 @@ Served ${served} items · ${happy} happy customers
     try { localStorage.setItem('oden-lang', lang); } catch (_) { /* noop */ }
     applyLang();
   }));
+
+  window.addEventListener('resize', fitPot);
 
   state = newState();
   buildBoard();
