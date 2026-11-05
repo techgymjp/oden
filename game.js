@@ -7,7 +7,7 @@
   const CONFIG = {
     gameLength: 150,      // 営業時間（秒）
     maxHearts: 3,         // 評判（0 になると閉店）
-    slots: 9,             // 鍋の仕切りの数（3x3）
+    slots: 6,             // 鍋の仕切りの数（2行×3列）
     stackMax: 3,          // 1 つの仕切りに重なる具の最大数
     seats: 4,             // カウンター席数
     pokeCooldown: 1000,   // 同じ具をツンツンできる間隔（ms）
@@ -24,6 +24,12 @@
     atsuage:  { name: '厚揚げ',   cook: 9,  price: 150, unlock: 25 },
     gyusuji:  { name: '牛すじ',   cook: 11, price: 200, unlock: 55 },
     kinchaku: { name: 'もち巾着', cook: 10, price: 180, unlock: 55 },
+  };
+
+  // ツンツンした時の音の高さ（やわらかい具は低く、弾力のある具は高く）
+  const POKE_PITCH = {
+    chikuwa: 1.2, tamago: 1.35, konnyaku: 1.5, daikon: 0.85,
+    hanpen: 0.75, atsuage: 1.0, gyusuji: 1.1, kinchaku: 0.9,
   };
 
   const FACES = ['👨‍💼', '👩', '👴', '👵', '🧑‍🎓', '👷', '🧔', '👩‍💼', '🧑‍🍳', '👨‍🦳'];
@@ -80,7 +86,16 @@
     } catch (_) { /* 音が出せない環境では無視 */ }
   }
   const sfx = {
-    poke: () => tone(220, 0.08, 'triangle', 0.2, 140),
+    // ツンツン：串先の「つっ」＋具がへこむ「ぷにっ」＋揺れ戻る「ぷるん」
+    poke: (pitch = 1) => {
+      const r = pitch * rand(0.94, 1.06);
+      tone(1800 * r, 0.025, 'triangle', 0.1, 700 * r);
+      tone(300 * r, 0.12, 'sine', 0.28, 150 * r);
+      setTimeout(() => tone(240 * r, 0.16, 'sine', 0.12, 380 * r), 70);
+      setTimeout(() => tone(330 * r, 0.12, 'sine', 0.06, 260 * r), 160);
+    },
+    splash: () => tone(900, 0.12, 'sine', 0.07, 1500),
+    pull: () => tone(400, 0.2, 'triangle', 0.1, 900),
     plop: () => tone(500, 0.18, 'sine', 0.15, 160),
     ok: () => { tone(660, 0.1, 'square', 0.08); setTimeout(() => tone(990, 0.15, 'square', 0.08), 90); },
     no: () => tone(150, 0.15, 'sawtooth', 0.06),
@@ -337,6 +352,8 @@
     showSkewer(slotEl);
 
     if (stack.length === 0) {
+      ripple(slotEl);
+      sfx.splash();
       floatText(slotEl, 'からっぽ', 'none');
       return;
     }
@@ -348,15 +365,15 @@
     if (now - item.lastPoke < CONFIG.pokeCooldown) {
       item.lastPoke = now;
       state.combo = 0;
+      wobble(slotEl, 0.5);
       floatText(slotEl, 'つつきすぎ！', 'fast');
       sfx.no();
       return;
     }
     item.lastPoke = now;
-    sfx.poke();
-    slotEl.classList.remove('poked');
-    void slotEl.offsetWidth;
-    slotEl.classList.add('poked');
+    sfx.poke(POKE_PITCH[item.type]);
+    wobble(slotEl, 1);
+    ripple(slotEl);
 
     const order = findOrder(item.type);
     if (!order) {
@@ -371,7 +388,9 @@
       return;
     }
 
-    // 提供！
+    // 提供！（串で引き上げる）
+    liftOut(slotEl);
+    sfx.pull();
     stack.pop();
     order.want.served = true;
     order.customer.dirty = true;
@@ -459,7 +478,7 @@
         const div = document.createElement('div');
         div.className = 'item' + (top.fresh ? ' drop' : '');
         div.style.animationDelay = top.fresh ? '' : `${-(top.id % 7) * 0.37}s`;
-        div.innerHTML = SVG[top.type];
+        div.innerHTML = `<div class="wob">${SVG[top.type]}</div>`;
         slotEl.appendChild(div);
         top.fresh = false;
       }
@@ -519,6 +538,41 @@
       s.className = 'seat empty';
       el.seats.appendChild(s);
     }
+  }
+
+  // 具がぷるぷる揺れる（Web Animations API。CSS の浮き沈みとは別の要素に掛ける）
+  function wobble(slotEl, power) {
+    const w = slotEl.querySelector('.item .wob');
+    if (!w || !w.animate) return;
+    const p = power;
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    w.animate([
+      { transform: 'scale(1, 1) rotate(0deg)' },
+      { transform: `scale(${1 + 0.18 * p}, ${1 - 0.24 * p}) rotate(0deg)`, offset: 0.12 },
+      { transform: `scale(${1 - 0.1 * p}, ${1 + 0.12 * p}) rotate(${8 * p * dir}deg)`, offset: 0.3 },
+      { transform: `scale(${1 + 0.06 * p}, ${1 - 0.06 * p}) rotate(${-6 * p * dir}deg)`, offset: 0.48 },
+      { transform: `scale(${1 - 0.03 * p}, ${1 + 0.03 * p}) rotate(${3 * p * dir}deg)`, offset: 0.66 },
+      { transform: `rotate(${-1.5 * p * dir}deg)`, offset: 0.82 },
+      { transform: 'scale(1, 1) rotate(0deg)' },
+    ], { duration: 650, easing: 'ease-out' });
+  }
+
+  // つついた所に出汁の波紋
+  function ripple(slotEl) {
+    const r = document.createElement('div');
+    r.className = 'ripple';
+    slotEl.appendChild(r);
+    setTimeout(() => r.remove(), 600);
+  }
+
+  // 提供した具を串で持ち上げて消す（render で .item が差し替わる前に複製を作る）
+  function liftOut(slotEl) {
+    const it = slotEl.querySelector('.item');
+    if (!it) return;
+    const ghost = it.cloneNode(true);
+    ghost.className = 'item lifted';
+    slotEl.appendChild(ghost);
+    setTimeout(() => ghost.remove(), 500);
   }
 
   function showSkewer(slotEl) {
