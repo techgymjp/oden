@@ -34,6 +34,108 @@
     cabbage:  { name: 'ロールキャベツ', cook: 7, price: 180, unlock: 55 },
   };
 
+  // ============================================================
+  //  言語（日本語 / English）
+  // ============================================================
+  const NAMES_EN = {
+    chikuwa: 'Chikuwa', tamago: 'Egg', konnyaku: 'Konnyaku', daikon: 'Daikon',
+    hanpen: 'Hanpen', atsuage: 'Fried tofu', gyusuji: 'Beef tendon', cabbage: 'Cabbage roll',
+  };
+  const STR = {
+    ja: {
+      docTitle: 'おでんつんつん',
+      title: 'おでん<span>つんつん</span>',
+      sales: '売上', time: 'のこり', rep: '評判',
+      mute: '音のオン・オフ', langBtn: 'EN', langAria: 'Switch to English',
+      counter: 'お客さん', potAria: 'おでん鍋',
+      hint: 'ツンツンできるのは真ん中の一番上の具だけ。下の段の具は隙間から見えます。煮え具合は見た目ではわかりません。',
+      full: '鍋が満杯！ 注文を受けられません',
+      rules: [
+        '開店時、鍋には<b>煮えた具が6つ</b>仕込んであり、最初のお客さんはそれを注文します。',
+        'お客さんが注文すると、その具が鍋に入ります。',
+        '具は3段まで重なります。ツンツンできるのは<b>一番上（真ん中）の具だけ</b>。下の段は隙間から見えます。',
+        '具は<b>煮えても見た目が変わりません</b>。具ごとに煮える時間が違います。',
+        '仕切りをタップして串で<b>ツンツン</b>。注文があって煮えていれば提供できます。',
+        '同じ具は<b>1秒以上</b>あけてツンツン。つつきすぎると無効＆やり直し。',
+        '<b>ハズレのツンツン</b>（まだ固い・注文なし・つつきすぎ・からっぽ）は、お客さんがイライラして待ってくれる時間が減ります。',
+        '待たせすぎるとお客さんが帰って評判ダウン。♥が無くなると閉店です。',
+        '連続で出すとコンボボーナス、早く出すほどチップが増えます。',
+      ],
+      bestSales: (v) => `ベスト売上：¥${v}`,
+      start: '開店する', again: 'もう一度',
+      closed: '評判が落ちて閉店…', done: '本日の営業終了！',
+      resSales: '売上', newBest: 'ベスト更新！', best: (v) => `ベスト：¥${v}`,
+      served: (n) => `提供した具：${n} 個`,
+      happy: (h) => `満足したお客さん：${h} 人`, angry: (a) => `怒って帰ったお客さん：${a} 人`,
+      share: '📣 結果をシェア', shareX: '𝕏 でポスト', copied: '✅ コピーしました',
+      copyPrompt: 'この文章をコピーしてシェアしてください',
+      shareText: (score, stay, served, happy) =>
+        `おでんつんつんで売上 ¥${score}（${stay}）
+提供 ${served} 個・満足したお客さん ${happy} 人
+#おでんつんつん`,
+      stayClosed: (sec) => `${sec}秒で閉店…`, stayDone: '完走！',
+      empty: 'からっぽ', tooFast: 'つつきすぎ！', noOrder: '注文なし', raw: 'まだ固い…',
+      combo: (n) => ` ${n}連`,
+      order: (names) => `ご注文：${names.join('・')}`,
+      thanks: 'まいど！', tip: (v) => `まいど！ チップ ¥${v}`,
+      angryLeft: 'お客さんが怒って帰ってしまった…（具は鍋に残ります）',
+      welcome: 'いらっしゃいませ！', welcomeFull: 'いらっしゃいませ！ 満席です！',
+      slot: (i, names) => `仕切り${i}：${names.length ? names.join('の下に') : '空'}`,
+      dbgLayer: (k, name, cooked) => `${k}段目 ${name} ${cooked ? '煮' : '生'}`, dbgEmpty: '空',
+    },
+    en: {
+      docTitle: 'Oden Tsun-Tsun',
+      title: 'Oden <span>Tsun-Tsun</span>',
+      sales: 'Sales', time: 'Time', rep: 'Rating',
+      mute: 'Sound on/off', langBtn: '日本語', langAria: '日本語に切り替え',
+      counter: 'Customers', potAria: 'Oden pot',
+      hint: 'You can only poke the top item in the center. Lower layers peek out from the edges. You can\'t tell if it\'s cooked just by looking.',
+      full: 'Pot is full! No more orders',
+      rules: [
+        'At opening, the pot already holds <b>6 cooked items</b>, and the first customers order exactly those.',
+        'When a customer orders, those items go into the pot.',
+        'Items stack up to 3 layers. You can only poke <b>the top one (center)</b>; lower layers peek out from the edges.',
+        'Items <b>look the same whether cooked or not</b>. Each kind takes a different time to cook.',
+        'Tap a compartment to <b>poke</b> it with a skewer. If it\'s ordered and cooked, it\'s served!',
+        'Wait <b>at least 1 second</b> between pokes on the same item. Poking too fast fails and resets the wait.',
+        '<b>Bad pokes</b> (not yet / no order / too fast / empty) annoy customers and shorten their patience.',
+        'Keep customers waiting too long and they storm off, lowering your rating. Lose all ♥ and the shop closes.',
+        'Serve in a row for combo bonuses. Serve fast for bigger tips.',
+      ],
+      bestSales: (v) => `Best sales: ¥${v}`,
+      start: 'Open shop', again: 'Play again',
+      closed: 'Your rating hit zero. Shop closed…', done: "That's a wrap for today!",
+      resSales: 'Sales', newBest: 'New best!', best: (v) => `Best: ¥${v}`,
+      served: (n) => `Items served: ${n}`,
+      happy: (h) => `Happy customers: ${h}`, angry: (a) => `Angry customers: ${a}`,
+      share: '📣 Share result', shareX: 'Post on 𝕏', copied: '✅ Copied!',
+      copyPrompt: 'Copy this text to share',
+      shareText: (score, stay, served, happy) =>
+        `I made ¥${score} in Oden Tsun-Tsun (${stay})
+Served ${served} items · ${happy} happy customers
+#OdenTsunTsun #おでんつんつん`,
+      stayClosed: (sec) => `closed after ${sec}s…`, stayDone: 'made it to closing!',
+      empty: 'Empty', tooFast: 'Too fast!', noOrder: 'No order', raw: 'Not yet…',
+      combo: (n) => ` x${n}`,
+      order: (names) => `Order: ${names.join(', ')}`,
+      thanks: 'Thank you!', tip: (v) => `Thank you! Tip ¥${v}`,
+      angryLeft: 'A customer stormed off… (their items stay in the pot)',
+      welcome: 'Welcome!', welcomeFull: 'Welcome! Full house!',
+      slot: (i, names) => `Slot ${i}: ${names.length ? names.join(', then ') : 'empty'}`,
+      dbgLayer: (k, name, cooked) => `L${k} ${name} ${cooked ? 'done' : 'raw'}`, dbgEmpty: 'empty',
+    },
+  };
+
+  function detectLang() {
+    const q = new URLSearchParams(location.search).get('lang');
+    if (q === 'ja' || q === 'en') return q;
+    try { const v = localStorage.getItem('oden-lang'); if (v === 'ja' || v === 'en') return v; } catch (_) { /* noop */ }
+    return (navigator.language || 'ja').toLowerCase().startsWith('ja') ? 'ja' : 'en';
+  }
+  let lang = detectLang();
+  const T = () => STR[lang];
+  const tn = (type) => (lang === 'en' ? NAMES_EN[type] : TYPES[type].name);
+
   // ツンツンした時の音の高さ（やわらかい具は低く、弾力のある具は高く）
   const POKE_PITCH = {
     chikuwa: 1.2, tamago: 1.35, konnyaku: 1.5, daikon: 0.85,
@@ -67,6 +169,7 @@
     score: $('score'), time: $('time'), hearts: $('hearts'), mute: $('mute'),
     seats: $('seats'), pot: $('pot'), toast: $('toast'), full: $('full'),
     overlay: $('overlay'), panelBody: $('panel-body'), start: $('start'),
+    langBtns: document.querySelectorAll('[data-lang-toggle]'),
   };
 
   // ============================================================
@@ -233,6 +336,7 @@
   //  状態
   // ============================================================
   let state = null;
+  let screen = 'title'; // 'title' | 'game' | 'result'
   let nextId = 1;
   let rafId = 0;
   let lastFrame = 0;
@@ -349,7 +453,7 @@
       dirty: true,
     };
     sfx.plop();
-    toast(`ご注文：${wants.map((w) => TYPES[w.type].name).join('・')}`);
+    toast(T().order(wants.map((w) => tn(w.type))));
     return true;
   }
 
@@ -396,7 +500,7 @@
     if (stack.length === 0) {
       ripple(slotEl);
       sfx.splash();
-      floatText(slotEl, 'からっぽ', 'none');
+      floatText(slotEl, T().empty, 'none');
       annoy(CONFIG.missPenaltyWrong);
       return;
     }
@@ -409,7 +513,7 @@
       item.lastPoke = now;
       state.combo = 0;
       wobble(slotEl, 0.5);
-      floatText(slotEl, 'つつきすぎ！', 'fast');
+      floatText(slotEl, T().tooFast, 'fast');
       annoy(CONFIG.missPenaltyWrong);
       sfx.no();
       return;
@@ -421,7 +525,7 @@
 
     const order = findOrder(item.type);
     if (!order) {
-      floatText(slotEl, '注文なし', 'none');
+      floatText(slotEl, T().noOrder, 'none');
       annoy(CONFIG.missPenaltyWrong);
       return;
     }
@@ -429,7 +533,7 @@
     const cooked = state.time - item.enteredAt >= item.cookTime;
     if (!cooked) {
       state.combo = 0;
-      floatText(slotEl, 'まだ固い…', 'raw');
+      floatText(slotEl, T().raw, 'raw');
       annoy(CONFIG.missPenaltyRaw);
       return;
     }
@@ -445,7 +549,7 @@
     const comboBonus = Math.min(state.combo - 1, CONFIG.comboMax) * CONFIG.comboStep;
     const gain = TYPES[item.type].price + comboBonus;
     state.score += gain;
-    floatText(slotEl, `+¥${gain}${state.combo > 1 ? ` ${state.combo}連` : ''}`, 'ok');
+    floatText(slotEl, `+¥${gain}${state.combo > 1 ? T().combo(state.combo) : ''}`, 'ok');
     sfx.ok();
 
     const c = order.customer;
@@ -454,8 +558,7 @@
       const tip = Math.round(remain * c.wants.length * CONFIG.tipPerItem / 10) * 10;
       state.score += tip;
       state.happy++;
-      if (tip > 0) toast(`まいど！ チップ ¥${tip}`);
-      else toast('まいど！');
+      toast(tip > 0 ? T().tip(tip) : T().thanks);
       sfx.coin();
       customerDone(c, true);
     }
@@ -495,7 +598,7 @@
         state.angry++;
         state.combo = 0;
         sfx.angry();
-        toast('お客さんが怒って帰ってしまった…（具は鍋に残ります）');
+        toast(T().angryLeft);
         customerDone(c, false);
       }
     }
@@ -536,9 +639,7 @@
         slotEl.appendChild(div);
         it.fresh = false;
       });
-      slotEl.setAttribute('aria-label', top
-        ? `仕切り${i + 1}：${stack.slice().reverse().map((it) => TYPES[it.type].name).join('の下に')}`
-        : `仕切り${i + 1}：空`);
+      slotEl.setAttribute('aria-label', T().slot(i + 1, stack.slice().reverse().map((it) => tn(it.type))));
     });
     if (DEBUG) {
       state.slots.forEach((stack, i) => {
@@ -546,7 +647,7 @@
         let d = slotEl.querySelector('.dbg');
         if (!d) { d = document.createElement('div'); d.className = 'dbg'; slotEl.appendChild(d); }
         d.textContent = stack.slice().reverse().map((it, k) =>
-          `${k + 1}段目 ${TYPES[it.type].name} ${state.time - it.enteredAt >= it.cookTime ? '煮' : '生'}`).join('\n') || '空';
+          T().dbgLayer(k + 1, tn(it.type), state.time - it.enteredAt >= it.cookTime)).join('\n') || T().dbgEmpty;
       });
     }
 
@@ -578,7 +679,7 @@
     seatEl.innerHTML = `
       <div class="customer${cls}">
         <div class="bubble">${c.wants.map((w) =>
-          `<span class="want${w.served ? ' served' : ''}" title="${TYPES[w.type].name}">${SVG[w.type]}</span>`).join('')}
+          `<span class="want${w.served ? ' served' : ''}" title="${tn(w.type)}">${SVG[w.type]}</span>`).join('')}
         </div>
         <div class="face">${face}</div>
         <div class="patience"><div></div></div>
@@ -675,31 +776,23 @@
   }
 
   function showTitle() {
-    const menu = Object.keys(TYPES).map((k) =>
-      `<div>${SVG[k]}${TYPES[k].name}</div>`).join('');
+    screen = 'title';
+    const menu = Object.keys(TYPES).map((k) => `<div>${SVG[k]}${tn(k)}</div>`).join('');
     el.panelBody.innerHTML = `
-      <ul class="rules">
-        <li>開店時、鍋には<b>煮えた具が6つ</b>仕込んであり、最初のお客さんはそれを注文します。</li>
-        <li>お客さんが注文すると、その具が鍋に入ります。</li>
-        <li>具は3段まで重なります。ツンツンできるのは<b>一番上（真ん中）の具だけ</b>。下の段は隙間から見えます。</li>
-        <li>具は<b>煮えても見た目が変わりません</b>。具ごとに煮える時間が違います。</li>
-        <li>仕切りをタップして串で<b>ツンツン</b>。注文があって煮えていれば提供できます。</li>
-        <li>同じ具は<b>1秒以上</b>あけてツンツン。つつきすぎると無効＆やり直し。</li>
-        <li><b>ハズレのツンツン</b>（まだ固い・注文なし・つつきすぎ・からっぽ）は、お客さんがイライラして待ってくれる時間が減ります。</li>
-        <li>待たせすぎるとお客さんが帰って評判ダウン。♥が無くなると閉店です。</li>
-        <li>連続で出すとコンボボーナス、早く出すほどチップが増えます。</li>
-      </ul>
+      <ul class="rules">${T().rules.map((r) => `<li>${r}</li>`).join('')}</ul>
       <div class="menu">${menu}</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">ベスト売上：¥${loadBest().toLocaleString()}</div>`;
-    el.start.textContent = '開店する';
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${T().bestSales(loadBest().toLocaleString())}</div>`;
+    el.start.textContent = T().start;
     el.overlay.classList.remove('hidden');
   }
+
 
   function startGame() {
     state = newState();
     buildBoard();
     el.overlay.classList.add('hidden');
-    el.toast.textContent = 'いらっしゃいませ！';
+    el.toast.textContent = T().welcome;
+    screen = 'game';
     state.running = true;
     // 開店と同時に全席満席でスタート。最初のお客さんは仕込みの具（煮えている）をちょうど分け合って注文する
     const prepped = prepPot().sort(() => Math.random() - 0.5);
@@ -712,7 +805,7 @@
       spawnCustomer(prepped.slice(cursor, cursor + n));
       cursor += n;
     }
-    toast('いらっしゃいませ！ 満席です！');
+    toast(T().welcomeFull);
     state.nextSpawn = 2;
     BGM.start();
   }
@@ -720,16 +813,15 @@
   // ============================================================
   //  シェア
   // ============================================================
-  function shareText(reason) {
-    const stay = state.hearts <= 0 ? `${Math.floor(state.time)}秒で閉店…` : '完走！';
-    return `おでんつんつんで売上 ¥${state.score.toLocaleString()}（${stay}）\n` +
-      `提供 ${state.served} 個・満足したお客さん ${state.happy} 人\n` +
-      '#おでんつんつん';
+  function shareText() {
+    const stay = state.hearts <= 0 ? T().stayClosed(Math.floor(state.time)) : T().stayDone;
+    return T().shareText(state.score.toLocaleString(), stay, state.served, state.happy);
   }
+
   function gameUrl() { return location.origin + location.pathname; }
 
-  function setupShare(reason) {
-    const text = shareText(reason);
+  function setupShare() {
+    const text = shareText();
     const url = gameUrl();
     const x = document.getElementById('share-x');
     x.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
@@ -737,43 +829,67 @@
     btn.addEventListener('click', async () => {
       // スマホなどは OS の共有シート、使えなければクリップボードにコピー
       if (navigator.share) {
-        try { await navigator.share({ title: 'おでんつんつん', text, url }); return; } catch (e) {
+        try { await navigator.share({ title: T().docTitle, text, url }); return; } catch (e) {
           if (e && e.name === 'AbortError') return;
         }
       }
       try {
         await navigator.clipboard.writeText(`${text}\n${url}`);
-        btn.textContent = '✅ コピーしました';
+        btn.textContent = T().copied;
       } catch (_) {
-        window.prompt('この文章をコピーしてシェアしてください', `${text}\n${url}`);
+        window.prompt(T().copyPrompt, `${text}\n${url}`);
       }
     });
   }
 
+  let lastResult = null;
   function endGame() {
     state.running = false;
     BGM.stop();
     const best = loadBest();
     const isBest = state.score > best;
     if (isBest) saveBest(state.score);
-    const reason = state.hearts <= 0 ? '評判が落ちて閉店…' : '本日の営業終了！';
+    lastResult = { best, isBest };
+    showResult();
+  }
+
+  function showResult() {
+    screen = 'result';
+    const { best, isBest } = lastResult;
     el.panelBody.innerHTML = `
-      <p style="margin:0 0 4px;font-weight:800">${reason}</p>
+      <p style="margin:0 0 4px;font-weight:800">${state.hearts <= 0 ? T().closed : T().done}</p>
       <div class="result">
-        <div>売上</div>
+        <div>${T().resSales}</div>
         <div class="big">¥${state.score.toLocaleString()}</div>
-        ${isBest ? '<div style="color:var(--accent);font-weight:800">ベスト更新！</div>' : `<div>ベスト：¥${Math.max(best, state.score).toLocaleString()}</div>`}
-        <div>提供した具：${state.served} 個</div>
-        <div>満足したお客さん：${state.happy} 人 ／ 怒って帰った：${state.angry} 人</div>
+        ${isBest ? `<div style="color:var(--accent);font-weight:800">${T().newBest}</div>` : `<div>${T().best(Math.max(best, state.score).toLocaleString())}</div>`}
+        <div>${T().served(state.served)}</div>
+        <div>${T().happy(state.happy)}</div>
+        <div>${T().angry(state.angry)}</div>
       </div>
       <div class="share">
-        <button id="share" class="share-btn" type="button">📣 結果をシェア</button>
-        <a id="share-x" class="share-btn x" target="_blank" rel="noopener">𝕏 でポスト</a>
+        <button id="share" class="share-btn" type="button">${T().share}</button>
+        <a id="share-x" class="share-btn x" target="_blank" rel="noopener">${T().shareX}</a>
       </div>`;
-    setupShare(reason);
-    el.start.textContent = 'もう一度';
+    setupShare();
+    el.start.textContent = T().again;
     el.overlay.classList.remove('hidden');
   }
+
+  // 画面上の固定テキストを今の言語で書き換える
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.title = T().docTitle;
+    document.querySelectorAll('[data-i18n]').forEach((n) => { n.innerHTML = T()[n.dataset.i18n]; });
+    document.querySelectorAll('[data-i18n-aria]').forEach((n) => { n.setAttribute('aria-label', T()[n.dataset.i18nAria]); });
+    el.langBtns.forEach((b) => { b.textContent = T().langBtn; b.setAttribute('aria-label', T().langAria); });
+    if (state) {
+      state.seats.forEach((c) => { if (c) c.dirty = true; });
+      state.slotKeys.fill('');
+    }
+    if (screen === 'title') showTitle();
+    else if (screen === 'result') showResult();
+  }
+
 
   // ============================================================
   //  初期化
@@ -786,9 +902,15 @@
     else if (state && state.running) BGM.start();
   });
 
+  el.langBtns.forEach((b) => b.addEventListener('click', () => {
+    lang = lang === 'ja' ? 'en' : 'ja';
+    try { localStorage.setItem('oden-lang', lang); } catch (_) { /* noop */ }
+    applyLang();
+  }));
+
   state = newState();
   buildBoard();
-  showTitle();
+  applyLang();
   lastFrame = performance.now();
   rafId = requestAnimationFrame(tick);
 })();

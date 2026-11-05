@@ -43,13 +43,15 @@ body { overflow-x: hidden; }
 /* ---------- HUD ---------- */
 .hud {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr 1fr auto auto;
   gap: 8px;
   align-items: center;
   background: rgba(0, 0, 0, .25);
   border-radius: 14px;
   padding: 8px 12px;
 }
+.icon-btn.panel-lang { position: absolute; top: 10px; right: 10px; height: 30px; background: rgba(0, 0, 0, .08); color: var(--ink); }
+.icon-btn.lang-btn { width: auto; min-width: 40px; padding: 0 10px; font-size: 13px; font-weight: 800; font-family: inherit; white-space: nowrap; }
 .hud-item { display: flex; flex-direction: column; line-height: 1.1; }
 .hud-label { font-size: 11px; color: #d6b996; }
 .hud-value { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -296,10 +298,11 @@ body { overflow-x: hidden; }
 }
 .overlay.hidden { display: none; }
 .panel {
+  position: relative;
   background: var(--paper);
   color: var(--ink);
   border-radius: 18px;
-  padding: 22px 20px;
+  padding: 40px 20px 22px;
   max-width: 440px;
   width: 100%;
   max-height: calc(100vh - 32px);
