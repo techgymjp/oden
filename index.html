@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>おでんつんつん</title>
+  <meta name="description" content="見た目では煮え具合がわからない！串でツンツンして、煮えたおでんをお客さんに出そう。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header class="hud">
+      <div class="hud-item"><span class="hud-label">売上</span><span id="score" class="hud-value">¥0</span></div>
+      <div class="hud-item"><span class="hud-label">のこり</span><span id="time" class="hud-value">--</span></div>
+      <div class="hud-item"><span class="hud-label">評判</span><span id="hearts" class="hud-value hearts"></span></div>
+      <button id="mute" class="icon-btn" type="button" aria-label="音のオン・オフ">🔊</button>
+    </header>
+
+    <section class="counter" aria-label="お客さん">
+      <div id="seats" class="seats"></div>
+    </section>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <section class="pot-wrap" aria-label="おでん鍋">
+      <div id="pot" class="pot"></div>
+      <p class="pot-hint">上から見ているので、下に沈んだ具は見えません。煮え具合も見た目ではわかりません。</p>
+    </section>
+  </div>
+
+  <div id="overlay" class="overlay">
+    <div class="panel">
+      <h1 class="title">おでん<span>つんつん</span></h1>
+      <div id="panel-body"></div>
+      <button id="start" class="start-btn" type="button">開店する</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
