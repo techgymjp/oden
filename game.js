@@ -500,24 +500,26 @@
       if (full && state.running) sfx.no();
     }
 
-    // 鍋：一番上の具だけ描く（下の具は見えない）
+    // 鍋：一番上の具は中央、2段目・3段目は少しずらして隙間から見える（深いほど暗い）
     state.slots.forEach((stack, i) => {
       const top = stack[stack.length - 1];
-      const key = top ? String(top.id) : '';
+      const key = stack.map((it) => it.id).join(',');
       if (state.slotKeys[i] === key) return;
       state.slotKeys[i] = key;
       const slotEl = el.pot.children[i];
-      const old = slotEl.querySelector('.item');
-      if (old) old.remove();
-      if (top) {
+      slotEl.querySelectorAll('.item:not(.lifted)').forEach((n) => n.remove());
+      stack.forEach((it, idx) => {
+        const depth = stack.length - 1 - idx; // 0 = 一番上
         const div = document.createElement('div');
-        div.className = 'item' + (top.fresh ? ' drop' : '');
-        div.style.animationDelay = top.fresh ? '' : `${-(top.id % 7) * 0.37}s`;
-        div.innerHTML = `<div class="wob">${SVG[top.type]}</div>`;
+        div.className = `item depth-${depth}` + (depth === 0 ? ' top' : '') + (it.fresh ? ' drop' : '');
+        div.style.animationDelay = it.fresh ? '' : `${-(it.id % 7) * 0.37}s`;
+        div.innerHTML = `<div class="wob">${SVG[it.type]}</div>`;
         slotEl.appendChild(div);
-        top.fresh = false;
-      }
-      slotEl.setAttribute('aria-label', top ? `仕切り${i + 1}：${TYPES[top.type].name}` : `仕切り${i + 1}：空`);
+        it.fresh = false;
+      });
+      slotEl.setAttribute('aria-label', top
+        ? `仕切り${i + 1}：${stack.slice().reverse().map((it) => TYPES[it.type].name).join('の下に')}`
+        : `仕切り${i + 1}：空`);
     });
     if (DEBUG) {
       state.slots.forEach((stack, i) => {
@@ -529,8 +531,6 @@
       });
     }
 
-    // 一番上でない「fresh」フラグは描画されないまま残るので消す
-    state.slots.forEach((s) => s.forEach((it) => { it.fresh = false; }));
 
     // お客さん
     state.seats.forEach((c, i) => {
@@ -587,7 +587,7 @@
 
   // 具がぷるぷる揺れる（Web Animations API。CSS の浮き沈みとは別の要素に掛ける）
   function wobble(slotEl, power) {
-    const w = slotEl.querySelector('.item .wob');
+    const w = slotEl.querySelector('.item.top .wob');
     if (!w || !w.animate) return;
     const p = power;
     const dir = Math.random() < 0.5 ? -1 : 1;
@@ -612,7 +612,7 @@
 
   // 提供した具を串で持ち上げて消す（render で .item が差し替わる前に複製を作る）
   function liftOut(slotEl) {
-    const it = slotEl.querySelector('.item');
+    const it = slotEl.querySelector('.item.top');
     if (!it) return;
     const ghost = it.cloneNode(true);
     ghost.className = 'item lifted';
@@ -660,7 +660,7 @@
       <ul class="rules">
         <li>開店時、鍋には<b>煮えた具が6つ</b>仕込んであり、最初のお客さんはそれを注文します。</li>
         <li>お客さんが注文すると、その具が鍋に入ります。</li>
-        <li>鍋は<b>上から見えるだけ</b>。下に沈んだ具は見えません。</li>
+        <li>具は3段まで重なります。ツンツンできるのは<b>一番上（真ん中）の具だけ</b>。下の段は隙間から見えます。</li>
         <li>具は<b>煮えても見た目が変わりません</b>。具ごとに煮える時間が違います。</li>
         <li>仕切りをタップして串で<b>ツンツン</b>。注文があって煮えていれば提供できます。</li>
         <li>同じ具は<b>1秒以上</b>あけてツンツン。つつきすぎると無効＆やり直し。</li>
