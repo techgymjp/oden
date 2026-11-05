@@ -717,6 +717,39 @@
     BGM.start();
   }
 
+  // ============================================================
+  //  シェア
+  // ============================================================
+  function shareText(reason) {
+    const stay = state.hearts <= 0 ? `${Math.floor(state.time)}秒で閉店…` : '完走！';
+    return `おでんつんつんで売上 ¥${state.score.toLocaleString()}（${stay}）\n` +
+      `提供 ${state.served} 個・満足したお客さん ${state.happy} 人\n` +
+      '#おでんつんつん';
+  }
+  function gameUrl() { return location.origin + location.pathname; }
+
+  function setupShare(reason) {
+    const text = shareText(reason);
+    const url = gameUrl();
+    const x = document.getElementById('share-x');
+    x.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    const btn = document.getElementById('share');
+    btn.addEventListener('click', async () => {
+      // スマホなどは OS の共有シート、使えなければクリップボードにコピー
+      if (navigator.share) {
+        try { await navigator.share({ title: 'おでんつんつん', text, url }); return; } catch (e) {
+          if (e && e.name === 'AbortError') return;
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        btn.textContent = '✅ コピーしました';
+      } catch (_) {
+        window.prompt('この文章をコピーしてシェアしてください', `${text}\n${url}`);
+      }
+    });
+  }
+
   function endGame() {
     state.running = false;
     BGM.stop();
@@ -732,7 +765,12 @@
         ${isBest ? '<div style="color:var(--accent);font-weight:800">ベスト更新！</div>' : `<div>ベスト：¥${Math.max(best, state.score).toLocaleString()}</div>`}
         <div>提供した具：${state.served} 個</div>
         <div>満足したお客さん：${state.happy} 人 ／ 怒って帰った：${state.angry} 人</div>
+      </div>
+      <div class="share">
+        <button id="share" class="share-btn" type="button">📣 結果をシェア</button>
+        <a id="share-x" class="share-btn x" target="_blank" rel="noopener">𝕏 でポスト</a>
       </div>`;
+    setupShare(reason);
     el.start.textContent = 'もう一度';
     el.overlay.classList.remove('hidden');
   }
