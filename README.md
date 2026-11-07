@@ -87,7 +87,7 @@ URL の末尾に `?debug` を付けると（例：`https://techgymjp.github.io/o
 
 ![APK のリリース画面の QR コード](docs/apk-qr.png)
 
-AdMob のアプリ ID は `android/app/src/main/res/values/strings.xml` の `admob_app_id`、本番の広告ユニット ID は `ads.js` の `UNITS.android.production` にあります（広告ユニット ID が空の種類は本番ビルドで出さない。現在はバナーと全画面広告を設定済み。リワードは未設定）。
+AdMob のアプリ ID は `android/app/src/main/res/values/strings.xml` の `admob_app_id`、本番の広告ユニット ID は `ads.js` の `UNITS.android.production` にあります（広告ユニット ID が空の種類は本番ビルドで出さない。バナー・全画面広告・リワードの 3 つとも設定済み）。
 動作確認用 APK はどれもテスト広告、Google Play 用の AAB は本番の広告です。
 
 Google Play のストア掲載情報（日英の紹介文・スクリーンショット・フィーチャーグラフィック・アイコン）の下書きは `docs/store/` にあります（`docs/store/listing.md` から読んでください）。

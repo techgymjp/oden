@@ -11,10 +11,10 @@ window.Ads = (() => {
         banner: 'ca-app-pub-3940256099942544/6300978111',
       },
       // 本番の広告ユニット（AdMob の Android アプリ「おでんつんつん」）。
-      // ID が届いたら入れる。空の種類は本番ビルド（Google Play 用）では出さない
+      // 空の種類は本番ビルド（Google Play 用）では出さない
       production: {
         interstitial: 'ca-app-pub-6411535997477460/6193984545',
-        rewarded: '',
+        rewarded: 'ca-app-pub-6411535997477460/2206638074',
         banner: 'ca-app-pub-6411535997477460/1765628259',
       },
     },
