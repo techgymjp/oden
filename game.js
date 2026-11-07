@@ -11,10 +11,15 @@
     stackMax: 3,          // 1 つの仕切りに重なる具の最大数
     seats: 6,             // カウンター席数
     pokeCooldown: 1000,   // 同じ具をツンツンできる間隔（ms）
-    missPenaltyRaw: 0.2,  // 「まだ固い」で、お客さん全員の我慢時間が減る秒数
+    missPenaltyRaw: 0.7,  // 「まだ固い」で、お客さん全員の我慢時間が減る秒数
     missPenaltyWrong: 0.7,// 「注文なし」「つつきすぎ」「からっぽ」で減る秒数
     patienceBase: 10,     // 我慢時間の基本秒数
     patiencePerItem: 3.5, // 我慢時間：1 品あたりの追加秒数
+    patienceStart: 1.6,   // 我慢時間の倍率：開店直後（前半は長めに待ってくれる）
+    patienceEnd: 1.0,     // 我慢時間の倍率：閉店間際
+    spawnStart: 2,        // 来店間隔（秒）：開店直後
+    spawnEnd: 0.8,        // 来店間隔（秒）：閉店間際
+    lateOrderFrom: 0.5,   // 営業時間のこの割合を過ぎたら、1 人 3〜4 品の注文になる
     comboStep: 20,        // コンボボーナス：1 コンボごとの加算額
     comboMax: 10,         // コンボボーナスの上限段数
     tipPerItem: 150,      // チップ：1 品あたりの最大額（早く出すほど多い）
@@ -455,8 +460,10 @@
       wants = preset.map((type) => ({ type, served: false }));
     } else {
       // 2〜3 品、後半は 2〜4 品をどんどん注文
+      // 前半は 2〜3 品、途中から 2〜4 品、後半は 3〜4 品
+      const minItems = p < CONFIG.lateOrderFrom ? 2 : 3;
       const maxItems = p < 0.3 ? 3 : 4;
-      const count = Math.min(2 + Math.floor(Math.random() * (maxItems - 1)), potFreeSpace());
+      const count = Math.min(minItems + Math.floor(Math.random() * (maxItems - minItems + 1)), potFreeSpace());
       if (count <= 0) return false;
       const types = availableTypes();
       wants = [];
@@ -465,7 +472,7 @@
     }
 
     const longest = Math.max(...wants.map((w) => TYPES[w.type].cook));
-    const patience = (longest * (1 + CONFIG.cookJitter) + CONFIG.patienceBase + wants.length * CONFIG.patiencePerItem) * (1.15 - p * 0.3);
+    const patience = (longest * (1 + CONFIG.cookJitter) + CONFIG.patienceBase + wants.length * CONFIG.patiencePerItem) * (CONFIG.patienceStart + (CONFIG.patienceEnd - CONFIG.patienceStart) * p);
     const seat = pick(free);
     state.seats[seat] = {
       id: nextId++,
@@ -607,8 +614,8 @@
     // 来店
     if (state.time >= state.nextSpawn) {
       if (spawnCustomer()) {
-        // 席が空けば 2 秒 → 1 秒間隔でどんどん来店
-        const base = 2 - p * 1;
+        // 席が空けば spawnStart → spawnEnd 秒間隔でどんどん来店
+        const base = CONFIG.spawnStart + (CONFIG.spawnEnd - CONFIG.spawnStart) * p;
         state.nextSpawn = state.time + rand(base * 0.7, base * 1.2);
       } else {
         // 満席・鍋がいっぱいなら、空いた瞬間に次のお客さんが座る
