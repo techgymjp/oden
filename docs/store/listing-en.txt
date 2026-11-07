@@ -12,7 +12,7 @@ Six customers line the counter, the orders keep coming, and every item drops int
 The catch? Oden looks exactly the same whether it's cooked or not. All you have is your skewer and a poke.
 
 ■ POKE IT. IF IT'S DONE, SERVE IT
-• Tap a compartment to poke it with your skewer. If it's ordered and cooked, it goes straight to the customer
+• Tap a compartment to poke it with your skewer. If it's ordered and cooked, it sparkles and goes straight to the customer
 • Not cooked yet? "Not yet…". Nobody ordered it? "No order"
 • Wait at least 1 second between pokes on the same item. Poke too fast and it doesn't count
 

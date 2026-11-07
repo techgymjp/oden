@@ -15,7 +15,7 @@ You run an oden shop. You look down into the pot from above. Six customers sit a
 
 ■ POKE AND SERVE
 Tap a part of the pot to poke the food with a stick.
-If a customer ordered it and it is cooked, you serve it.
+If a customer ordered it and it is cooked, it shines and you serve it.
 If it is not cooked, the game says "Not yet".
 If nobody ordered it, the game says "No order".
 Wait at least 1 second before you poke the same item again.
