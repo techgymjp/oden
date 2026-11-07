@@ -13,7 +13,7 @@ window.Ads = (() => {
       // 本番の広告ユニット（AdMob の Android アプリ「おでんつんつん」）。
       // ID が届いたら入れる。空の種類は本番ビルド（Google Play 用）では出さない
       production: {
-        interstitial: '',
+        interstitial: 'ca-app-pub-6411535997477460/6193984545',
         rewarded: '',
         banner: 'ca-app-pub-6411535997477460/1765628259',
       },
