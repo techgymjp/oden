@@ -572,6 +572,7 @@
 
     // 提供！（串で引き上げる）
     liftOut(slotEl);
+    shine(slotEl, state.combo + 1);
     sfx.pull();
     stack.pop();
     order.want.served = true;
@@ -782,9 +783,30 @@
     const it = slotEl.querySelector('.item.top');
     if (!it) return;
     const ghost = it.cloneNode(true);
-    ghost.className = 'item lifted';
+    ghost.className = 'item lifted glow';
     slotEl.appendChild(ghost);
-    setTimeout(() => ghost.remove(), 500);
+    setTimeout(() => ghost.remove(), 700);
+  }
+
+  // 煮えていた（提供できた）瞬間に、仕切りがパッと光ってキラキラが飛ぶ。
+  // ※煮えた時点では光らない（見た目で煮え具合がわからないのがこのゲームの肝なので）
+  function shine(slotEl, combo) {
+    const flash = document.createElement('div');
+    flash.className = 'shine';
+    slotEl.appendChild(flash);
+    const n = Math.min(6 + combo, 14); // コンボが続くほどキラキラが増える
+    for (let k = 0; k < n; k++) {
+      const sp = document.createElement('div');
+      sp.className = 'spark';
+      const a = (k / n) * Math.PI * 2 + Math.random() * 0.5;
+      const d = 40 + Math.random() * 34;
+      sp.style.setProperty('--dx', `${Math.cos(a) * d}px`);
+      sp.style.setProperty('--dy', `${Math.sin(a) * d}px`);
+      sp.style.animationDelay = `${Math.random() * 0.08}s`;
+      slotEl.appendChild(sp);
+      setTimeout(() => sp.remove(), 800);
+    }
+    setTimeout(() => flash.remove(), 700);
   }
 
   function showSkewer(slotEl) {
