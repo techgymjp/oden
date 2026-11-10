@@ -78,6 +78,7 @@
       contLoading: '広告を読み込み中…', contFail: '広告を読み込めませんでした',
       contDone: '評判が戻った！ 営業再開！',
       continues: (n) => `コンティニュー：${n} 回`,
+      getApp: '📱 Android アプリ版（Google Play）',
       closed: '評判が落ちて閉店…', done: '本日の営業終了！',
       resSales: '売上', newBest: 'ベスト更新！', best: (v) => `ベスト：¥${v}`,
       served: (n) => `提供した具：${n} 個`,
@@ -127,6 +128,7 @@
       contLoading: 'Loading ad…', contFail: 'Couldn\'t load an ad',
       contDone: 'Rating restored! Back to work!',
       continues: (n) => `Continues: ${n}`,
+      getApp: '📱 Get the Android app (Google Play)',
       closed: 'Your rating hit zero. Shop closed…', done: "That's a wrap for today!",
       resSales: 'Sales', newBest: 'New best!', best: (v) => `Best: ¥${v}`,
       served: (n) => `Items served: ${n}`,
@@ -857,6 +859,14 @@
   };
 
   // パネル（トップ・あそびかた・ポーズ・コンティニュー・結果）の下のボタン
+  // Web 版だけ、トップ画面とあそびかた画面に Google Play のアプリへのリンクを出す。
+  // アプリ用のビルドでは、scripts/build-web.js が下の目印で囲んだ範囲ごと取り除く（アプリには空の関数が残る）
+  let storeLinkHtml = () => '';
+  // web-only:start
+  const PLAY_URL = 'https://play.google.com/store/apps/details?id=jp.techgym.oden';
+  storeLinkHtml = () => (NATIVE ? '' : `<p class="store-link"><a href="${PLAY_URL}" target="_blank" rel="noopener">${T().getApp}</a></p>`);
+  // web-only:end
+
   function setActions(buttons) {
     el.actions.innerHTML = '';
     for (const b of buttons) {
@@ -898,6 +908,7 @@
       <div class="top-art">${art}</div>
       <p class="tagline">${T().tagline}</p>
       <p class="best-line">${T().bestSales(loadBest().toLocaleString())}</p>
+      ${storeLinkHtml()}
       <p class="legal">${ver}<a href="${T().privacyUrl}" target="_blank" rel="noopener">${T().privacy}</a><span id="adPrivacy" ${Ads.privacyOptionsRequired ? '' : 'hidden'}> · <a href="#" id="adPrivacyLink">${T().adSettings}</a></span></p>`;
     const link = document.getElementById('adPrivacyLink');
     link.addEventListener('click', (e) => { e.preventDefault(); Ads.showPrivacyOptions(); });
@@ -912,7 +923,8 @@
     const menu = Object.keys(TYPES).map((k) => `<div>${SVG[k]}${tn(k)}</div>`).join('');
     el.panelBody.innerHTML = `
       <ul class="rules">${T().rules.map((r) => `<li>${r}</li>`).join('')}</ul>
-      <div class="menu">${menu}</div>`;
+      <div class="menu">${menu}</div>
+      ${storeLinkHtml()}`;
     setActions([
       { label: T().play, primary: true, onClick: play },
       { label: T().toTop, onClick: goTop },

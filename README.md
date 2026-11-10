@@ -60,6 +60,10 @@ URL の末尾に `?debug` を付けると（例：`https://techgymjp.github.io/o
 
 ## Android アプリ
 
+Web 版のトップ画面とあそびかた画面には Google Play のアプリへのリンク（https://play.google.com/store/apps/details?id=jp.techgym.oden 、新しいタブで開く）を出しています。
+このリンクのコードは `// web-only:start` 〜 `// web-only:end`（HTML なら `<!-- web-only -->` 〜 `<!-- /web-only -->`）で囲んであり、`scripts/build-web.js` がアプリに同梱するファイルから取り除きます（`play.google.com` が残っていたらビルドを止める）。
+アプリのバンドルに他社ストアへのリンクや、それを隠す処理を残さないためです（iOS 審査 Guideline 5.6 の対策）。
+
 [Capacitor](https://capacitorjs.com/) でゲームのファイルをアプリに同梱し、Android アプリにしています（オフラインでも遊べます。フォントだけはネットに繋がっているときに読み込み、無ければ端末の丸ゴシックで表示）。
 構成は techgymjp/jet-fighter の `docs/ANDROID_PORTING.md`、techgymjp/jackal と同じです。
 
