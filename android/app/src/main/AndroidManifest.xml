@@ -36,4 +36,8 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 縦画面固定（screenOrientation="sensorPortrait"）にしているが、縦画面のハードウェアは必須ではない。
+         明示しないと縦画面が必須とみなされ、Chromebook やタブレットなどで Google Play に表示されないことがある -->
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
 </manifest>
